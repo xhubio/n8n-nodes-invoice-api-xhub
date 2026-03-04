@@ -1,0 +1,9 @@
+node_modules
+.idea
+.DS_Store
+.env
+.env.local
+.pnpm
+.yarn
+test/rest.txt
+session.txt

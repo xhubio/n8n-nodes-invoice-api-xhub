@@ -1,0 +1,224 @@
+import type {
+	IExecuteFunctions,
+	INodeExecutionData,
+	INodeProperties,
+	IDataObject,
+} from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
+
+import { COUNTRY_OPTIONS, FORMAT_OPTIONS } from '../../../shared/constants';
+import {
+	generateInvoice,
+	base64ToBinary,
+	buildErrorMessage,
+} from '../../../shared/GenericFunctions';
+
+export const description: INodeProperties[] = [
+	{
+		displayName: 'Country',
+		name: 'countryCode',
+		type: 'options',
+		options: COUNTRY_OPTIONS,
+		default: 'DE',
+		required: true,
+		displayOptions: {
+			show: {
+				operation: ['generate'],
+			},
+		},
+		description: 'The country for which to generate the invoice',
+	},
+	{
+		displayName: 'Output Format',
+		name: 'format',
+		type: 'options',
+		options: FORMAT_OPTIONS,
+		default: 'xrechnung',
+		required: true,
+		displayOptions: {
+			show: {
+				operation: ['generate'],
+			},
+		},
+		description: 'The output format for the generated invoice',
+	},
+	{
+		displayName: 'Invoice Data',
+		name: 'invoiceData',
+		type: 'json',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				operation: ['generate'],
+			},
+		},
+		description: 'The invoice data as JSON object',
+	},
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				operation: ['generate'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Output Binary',
+				name: 'outputBinary',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to output the generated document as binary data',
+			},
+			{
+				displayName: 'Binary Property',
+				name: 'binaryPropertyName',
+				type: 'string',
+				default: 'data',
+				description: 'Name of the binary property to write the document to',
+				displayOptions: {
+					show: {
+						outputBinary: [true],
+					},
+				},
+			},
+			{
+				displayName: 'Include Warnings',
+				name: 'includeWarnings',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to include validation warnings in the output',
+			},
+			{
+				displayName: 'Format Options',
+				name: 'formatOptions',
+				type: 'json',
+				default: '{}',
+				description: 'Additional format-specific options as JSON',
+			},
+		],
+	},
+];
+
+export async function execute(
+	this: IExecuteFunctions,
+	items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+	const returnData: INodeExecutionData[] = [];
+
+	for (let i = 0; i < items.length; i++) {
+		try {
+			const countryCode = this.getNodeParameter('countryCode', i) as string;
+			const format = this.getNodeParameter('format', i) as string;
+			const invoiceDataRaw = this.getNodeParameter('invoiceData', i) as string | IDataObject;
+			const options = this.getNodeParameter('options', i, {}) as IDataObject;
+
+			// Parse invoice data if it's a string
+			let invoiceData: IDataObject;
+			if (typeof invoiceDataRaw === 'string') {
+				try {
+					invoiceData = JSON.parse(invoiceDataRaw) as IDataObject;
+				} catch {
+					throw new NodeOperationError(
+						this.getNode(),
+						'Invoice data must be valid JSON',
+						{ itemIndex: i },
+					);
+				}
+			} else {
+				invoiceData = invoiceDataRaw;
+			}
+
+			// Parse format options if provided
+			let formatOptions: IDataObject | undefined;
+			if (options.formatOptions) {
+				if (typeof options.formatOptions === 'string') {
+					try {
+						formatOptions = JSON.parse(options.formatOptions) as IDataObject;
+					} catch {
+						throw new NodeOperationError(
+							this.getNode(),
+							'Format options must be valid JSON',
+							{ itemIndex: i },
+						);
+					}
+				} else {
+					formatOptions = options.formatOptions as IDataObject;
+				}
+			}
+
+			// Call the API
+			const response = await generateInvoice.call(
+				this,
+				countryCode,
+				format,
+				invoiceData,
+				formatOptions,
+			);
+
+			if (!response.success) {
+				throw new NodeOperationError(
+					this.getNode(),
+					buildErrorMessage(response),
+					{ itemIndex: i },
+				);
+			}
+
+			// Build output data
+			const outputData: IDataObject = {
+				success: response.success,
+				format: response.format,
+				filename: response.filename,
+				mimeType: response.mimeType,
+				hash: response.hash,
+			};
+
+			// Include warnings if requested
+			if (options.includeWarnings !== false && response.warnings?.length) {
+				outputData.warnings = response.warnings;
+			}
+
+			// Handle binary output
+			const newItem: INodeExecutionData = {
+				json: outputData,
+				pairedItem: { item: i },
+			};
+
+			if (options.outputBinary !== false && response.data) {
+				const binaryPropertyName = (options.binaryPropertyName as string) || 'data';
+				const binaryData = base64ToBinary(response.data);
+
+				newItem.binary = {
+					[binaryPropertyName]: await this.helpers.prepareBinaryData(
+						binaryData,
+						response.filename || `invoice.${format}`,
+						response.mimeType || 'application/octet-stream',
+					),
+				};
+			} else if (response.data) {
+				// Include base64 data in JSON if binary output is disabled
+				outputData.data = response.data;
+			}
+
+			returnData.push(newItem);
+		} catch (error) {
+			if (this.continueOnFail()) {
+				returnData.push({
+					json: {
+						success: false,
+						error: error instanceof Error ? error.message : 'Unknown error',
+					},
+					pairedItem: { item: i },
+				});
+				continue;
+			}
+			throw error;
+		}
+	}
+
+	return returnData;
+}

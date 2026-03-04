@@ -1,0 +1,69 @@
+{
+	"invoiceNumber": "RE-2025-001",
+	"type": "invoice",
+	"issueDate": "2025-01-15",
+	"dueDate": "2025-02-15",
+	"currency": "EUR",
+	"seller": {
+		"name": "Muster GmbH",
+		"vatId": "DE811128135",
+		"street": "Musterstraße 1",
+		"postalCode": "10115",
+		"city": "Berlin",
+		"countryCode": "DE",
+		"email": "info@muster.de",
+		"bankAccount": {
+			"iban": "DE89370400440532013000",
+			"bic": "COBADEFFXXX"
+		}
+	},
+	"buyer": {
+		"name": "Beispiel AG",
+		"vatId": "DE136695976",
+		"street": "Beispielweg 42",
+		"postalCode": "80331",
+		"city": "München",
+		"countryCode": "DE"
+	},
+	"items": [
+		{
+			"position": 1,
+			"description": "Beratungsleistung",
+			"quantity": 10,
+			"unit": "HUR",
+			"unitPrice": 150,
+			"taxRate": 19,
+			"netAmount": 1500,
+			"taxAmount": 285,
+			"grossAmount": 1785
+		},
+		{
+			"position": 2,
+			"description": "Softwarelizenz",
+			"quantity": 1,
+			"unit": "C62",
+			"unitPrice": 499,
+			"taxRate": 19,
+			"netAmount": 499,
+			"taxAmount": 94.81,
+			"grossAmount": 593.81
+		}
+	],
+	"taxSummary": [
+		{
+			"taxRate": 19,
+			"netAmount": 1999,
+			"taxAmount": 379.81
+		}
+	],
+	"subtotal": 1999,
+	"total": 2378.81,
+	"paymentTerms": {
+		"dueDays": 30,
+		"description": "Zahlbar innerhalb von 30 Tagen"
+	},
+	"countrySpecific": {
+		"countryCode": "DE",
+		"leitwegId": "991-12345-67"
+	}
+}

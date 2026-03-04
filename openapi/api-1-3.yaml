@@ -1,0 +1,1944 @@
+openapi: 3.1.0
+info:
+  title: Invoice.xhub API
+  description: "
+
+    ## Overview
+
+
+    The Invoice.xhub API provides REST endpoints for generating, parsing, and
+    validating electronic invoices across 14 European countries.
+
+
+    ## Authentication
+
+
+    All endpoints require API Key authentication using a Bearer token:
+
+
+    ```
+
+    Authorization: Bearer sk_live_xxxxx
+
+    ```
+
+
+    API keys can be created in test mode (`sk_test_*`) or live mode
+    (`sk_live_*`).
+
+
+    ## Supported Countries
+
+
+    | Country | Formats |
+
+    |---------|---------|
+
+    | Germany (DE) | PDF, ZUGFeRD 2.3, XRechnung 3.0 |
+
+    | Austria (AT) | PDF, ebInterface |
+
+    | Switzerland (CH) | PDF, QR-Bill |
+
+    | France (FR) | PDF, Factur-X |
+
+    | Italy (IT) | PDF, FatturaPA |
+
+    | Spain (ES) | PDF, Facturae |
+
+    | Netherlands (NL) | PDF, UBL |
+
+    | Belgium (BE) | PDF, UBL |
+
+    | Portugal (PT) | PDF |
+
+    | Poland (PL) | PDF |
+
+    | Czech Republic (CZ) | PDF, ISDOC |
+
+    | Hungary (HU) | PDF, NAV |
+
+    | Romania (RO) | PDF |
+
+    | Bulgaria (BG) | PDF |
+
+
+    ## Rate Limits & Quotas
+
+
+    API usage is tracked per entitlement. When quota is exceeded, endpoints
+    return HTTP 429 with quota details.
+
+
+    ## Entitlements
+
+
+    Access is controlled by entitlements on the API key:
+
+    - `pdf:{country}:generate` - PDF generation
+
+    - `e-invoice:{country}:{format}:create` - E-invoice generation
+
+    - `e-invoice:{country}:{format}:parse` - E-invoice parsing
+
+    \    "
+  version: 1.0.0
+  contact:
+    name: xhub.io Support
+    email: support@xhub.io
+servers:
+  - url: /api/v1/invoice
+    description: Invoice API v1
+tags:
+  - name: Invoice Generation
+    description: Generate invoice documents (PDF, e-invoices)
+  - name: Invoice Parsing
+    description: Parse e-invoice documents and extract data
+  - name: Invoice Validation
+    description: Validate invoice data against country rules
+  - name: Formats
+    description: Query supported countries and formats
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication. Use `sk_live_*` for production or
+        `sk_test_*` for testing.
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/invoice/{countryCode}/{format}/generate:
+    post:
+      operationId: postApiV1InvoiceByCountryCodeByFormatGenerate
+      tags:
+        - Invoice Generation
+      summary: Generate invoice document
+      description: Generate an invoice document in the specified format (PDF,
+        XRechnung, ZUGFeRD, etc.). Supports 14 European countries with
+        country-specific e-invoice formats.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Invoice document generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether generation was successful
+                  format:
+                    type: string
+                    description: Output format used
+                  filename:
+                    type: string
+                    description: Suggested filename
+                  mimeType:
+                    type: string
+                    description: MIME type of the document
+                  hash:
+                    type: string
+                    description: SHA-256 hash of the document
+                  data:
+                    type: string
+                    description: Base64 encoded document
+                  errors:
+                    description: Validation errors (if any)
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                  warnings:
+                    description: Validation warnings (if any)
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                required:
+                  - success
+                  - format
+                  - filename
+                  - mimeType
+                  - hash
+                  - data
+        "400":
+          description: Bad Request - Invalid invoice data or unsupported country/format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "403":
+          description: Forbidden - Missing required entitlement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "429":
+          description: Quota Exceeded - Usage limit reached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: QUOTA_EXCEEDED
+                    description: Error code
+                  message:
+                    type: string
+                    description: Error message
+                  quota:
+                    type: object
+                    properties:
+                      current:
+                        type: number
+                        description: Current usage count
+                      limit:
+                        type: number
+                        description: Usage limit
+                      period:
+                        type: string
+                        description: Billing period
+                    required:
+                      - current
+                      - limit
+                      - period
+                required:
+                  - error
+                  - message
+                  - quota
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice:
+                  type: object
+                  properties:
+                    invoiceNumber:
+                      type: string
+                      description: Unique invoice number
+                    type:
+                      type: string
+                      enum:
+                        - invoice
+                        - credit_note
+                        - proforma
+                        - correction
+                      description: Invoice type
+                    issueDate:
+                      type: string
+                      description: "Issue date (ISO 8601: YYYY-MM-DD)"
+                    dueDate:
+                      type: string
+                      description: "Due date (ISO 8601: YYYY-MM-DD)"
+                    deliveryDate:
+                      description: Delivery date (ISO 8601)
+                      type: string
+                    seller:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Legal name of the party
+                        street:
+                          type: string
+                          description: Street address
+                        city:
+                          type: string
+                          description: City
+                        postalCode:
+                          type: string
+                          description: Postal code
+                        countryCode:
+                          type: string
+                          description: Country code (ISO 3166-1 alpha-2)
+                        taxId:
+                          description: Tax identification number
+                          type: string
+                        vatId:
+                          description: VAT identification number
+                          type: string
+                        email:
+                          description: Email address
+                          type: string
+                        phone:
+                          description: Phone number
+                          type: string
+                      required:
+                        - name
+                        - street
+                        - city
+                        - postalCode
+                        - countryCode
+                      additionalProperties: {}
+                      description: Seller party information
+                    buyer:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Legal name of the party
+                        street:
+                          type: string
+                          description: Street address
+                        city:
+                          type: string
+                          description: City
+                        postalCode:
+                          type: string
+                          description: Postal code
+                        countryCode:
+                          type: string
+                          description: Country code (ISO 3166-1 alpha-2)
+                        taxId:
+                          description: Tax identification number
+                          type: string
+                        vatId:
+                          description: VAT identification number
+                          type: string
+                        email:
+                          description: Email address
+                          type: string
+                        phone:
+                          description: Phone number
+                          type: string
+                      required:
+                        - name
+                        - street
+                        - city
+                        - postalCode
+                        - countryCode
+                      additionalProperties: {}
+                      description: Buyer party information
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          position:
+                            type: integer
+                            exclusiveMinimum: 0
+                            maximum: 9007199254740991
+                            description: Line item position number
+                          description:
+                            type: string
+                            description: Item description
+                          articleNumber:
+                            description: Article/SKU number
+                            type: string
+                          quantity:
+                            type: number
+                            exclusiveMinimum: 0
+                            description: Quantity
+                          unit:
+                            type: string
+                            description: Unit code (UN/ECE Rec 20)
+                          unitPrice:
+                            type: number
+                            description: Unit price (net)
+                          taxRate:
+                            type: number
+                            minimum: 0
+                            maximum: 100
+                            description: Tax rate in percent
+                          taxCategoryCode:
+                            description: Tax category code (EN 16931)
+                            type: string
+                          netAmount:
+                            type: number
+                            description: Net amount (quantity * unitPrice)
+                          taxAmount:
+                            type: number
+                            description: Tax amount
+                          grossAmount:
+                            type: number
+                            description: Gross amount (net + tax)
+                        required:
+                          - position
+                          - description
+                          - quantity
+                          - unit
+                          - unitPrice
+                          - taxRate
+                          - netAmount
+                          - taxAmount
+                          - grossAmount
+                        additionalProperties: {}
+                      description: Invoice line items
+                    currency:
+                      type: string
+                      description: Currency code (ISO 4217)
+                    subtotal:
+                      type: number
+                      description: Total net amount
+                    total:
+                      type: number
+                      description: Total gross amount
+                    taxSummary:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          taxRate:
+                            type: number
+                            description: Tax rate in percent
+                          taxCategoryCode:
+                            description: Tax category code
+                            type: string
+                          netAmount:
+                            type: number
+                            description: Net amount for this tax rate
+                          taxAmount:
+                            type: number
+                            description: Tax amount
+                        required:
+                          - taxRate
+                          - netAmount
+                          - taxAmount
+                        additionalProperties: {}
+                      description: Tax summary per tax rate
+                    paymentTerms:
+                      type: object
+                      properties:
+                        dueDays:
+                          type: number
+                          description: Payment due in days
+                        description:
+                          description: Payment terms description
+                          type: string
+                      required:
+                        - dueDays
+                      additionalProperties: {}
+                      description: Payment terms
+                    notes:
+                      description: Additional notes
+                      type: string
+                  required:
+                    - invoiceNumber
+                    - type
+                    - issueDate
+                    - dueDate
+                    - seller
+                    - buyer
+                    - items
+                    - currency
+                    - subtotal
+                    - total
+                    - taxSummary
+                    - paymentTerms
+                  additionalProperties: {}
+                  description: Invoice data to generate document from
+                formatOptions:
+                  description: Format-specific options (e.g., template for PDF, zugferdProfile)
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+              required:
+                - invoice
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: countryCode
+          required: true
+        - schema:
+            type: string
+          in: path
+          name: format
+          required: true
+  /api/v1/invoice/{countryCode}/{format}/parse:
+    post:
+      operationId: postApiV1InvoiceByCountryCodeByFormatParse
+      tags:
+        - Invoice Parsing
+      summary: Parse e-invoice document
+      description: Parse an e-invoice document (ZUGFeRD, XRechnung, Factur-X, etc.)
+        and extract structured Invoice data. Supports XML files and PDFs with
+        embedded XML (ZUGFeRD/Factur-X).
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Invoice parsed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether parsing was successful
+                  invoice:
+                    description: Extracted invoice data
+                    type: object
+                    properties:
+                      invoiceNumber:
+                        type: string
+                        description: Unique invoice number
+                      type:
+                        type: string
+                        enum:
+                          - invoice
+                          - credit_note
+                          - proforma
+                          - correction
+                        description: Invoice type
+                      issueDate:
+                        type: string
+                        description: "Issue date (ISO 8601: YYYY-MM-DD)"
+                      dueDate:
+                        type: string
+                        description: "Due date (ISO 8601: YYYY-MM-DD)"
+                      deliveryDate:
+                        description: Delivery date (ISO 8601)
+                        type: string
+                      seller:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Legal name of the party
+                          street:
+                            type: string
+                            description: Street address
+                          city:
+                            type: string
+                            description: City
+                          postalCode:
+                            type: string
+                            description: Postal code
+                          countryCode:
+                            type: string
+                            description: Country code (ISO 3166-1 alpha-2)
+                          taxId:
+                            description: Tax identification number
+                            type: string
+                          vatId:
+                            description: VAT identification number
+                            type: string
+                          email:
+                            description: Email address
+                            type: string
+                          phone:
+                            description: Phone number
+                            type: string
+                        required:
+                          - name
+                          - street
+                          - city
+                          - postalCode
+                          - countryCode
+                        additionalProperties: {}
+                        description: Seller party information
+                      buyer:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Legal name of the party
+                          street:
+                            type: string
+                            description: Street address
+                          city:
+                            type: string
+                            description: City
+                          postalCode:
+                            type: string
+                            description: Postal code
+                          countryCode:
+                            type: string
+                            description: Country code (ISO 3166-1 alpha-2)
+                          taxId:
+                            description: Tax identification number
+                            type: string
+                          vatId:
+                            description: VAT identification number
+                            type: string
+                          email:
+                            description: Email address
+                            type: string
+                          phone:
+                            description: Phone number
+                            type: string
+                        required:
+                          - name
+                          - street
+                          - city
+                          - postalCode
+                          - countryCode
+                        additionalProperties: {}
+                        description: Buyer party information
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            position:
+                              type: integer
+                              exclusiveMinimum: 0
+                              maximum: 9007199254740991
+                              description: Line item position number
+                            description:
+                              type: string
+                              description: Item description
+                            articleNumber:
+                              description: Article/SKU number
+                              type: string
+                            quantity:
+                              type: number
+                              exclusiveMinimum: 0
+                              description: Quantity
+                            unit:
+                              type: string
+                              description: Unit code (UN/ECE Rec 20)
+                            unitPrice:
+                              type: number
+                              description: Unit price (net)
+                            taxRate:
+                              type: number
+                              minimum: 0
+                              maximum: 100
+                              description: Tax rate in percent
+                            taxCategoryCode:
+                              description: Tax category code (EN 16931)
+                              type: string
+                            netAmount:
+                              type: number
+                              description: Net amount (quantity * unitPrice)
+                            taxAmount:
+                              type: number
+                              description: Tax amount
+                            grossAmount:
+                              type: number
+                              description: Gross amount (net + tax)
+                          required:
+                            - position
+                            - description
+                            - quantity
+                            - unit
+                            - unitPrice
+                            - taxRate
+                            - netAmount
+                            - taxAmount
+                            - grossAmount
+                          additionalProperties: {}
+                        description: Invoice line items
+                      currency:
+                        type: string
+                        description: Currency code (ISO 4217)
+                      subtotal:
+                        type: number
+                        description: Total net amount
+                      total:
+                        type: number
+                        description: Total gross amount
+                      taxSummary:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            taxRate:
+                              type: number
+                              description: Tax rate in percent
+                            taxCategoryCode:
+                              description: Tax category code
+                              type: string
+                            netAmount:
+                              type: number
+                              description: Net amount for this tax rate
+                            taxAmount:
+                              type: number
+                              description: Tax amount
+                          required:
+                            - taxRate
+                            - netAmount
+                            - taxAmount
+                          additionalProperties: {}
+                        description: Tax summary per tax rate
+                      paymentTerms:
+                        type: object
+                        properties:
+                          dueDays:
+                            type: number
+                            description: Payment due in days
+                          description:
+                            description: Payment terms description
+                            type: string
+                        required:
+                          - dueDays
+                        additionalProperties: {}
+                        description: Payment terms
+                      notes:
+                        description: Additional notes
+                        type: string
+                    required:
+                      - invoiceNumber
+                      - type
+                      - issueDate
+                      - dueDate
+                      - seller
+                      - buyer
+                      - items
+                      - currency
+                      - subtotal
+                      - total
+                      - taxSummary
+                      - paymentTerms
+                    additionalProperties: {}
+                  format:
+                    description: Detected format (e.g., ZUGFERD_EN16931)
+                    type: string
+                  hash:
+                    description: SHA-256 hash of the input document
+                    type: string
+                  errors:
+                    description: Parsing errors (if any)
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                  warnings:
+                    description: Parsing warnings (if any)
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                required:
+                  - success
+        "400":
+          description: Bad Request - Invalid document or unsupported format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "403":
+          description: Forbidden - Missing required entitlement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "429":
+          description: Quota Exceeded - Usage limit reached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: QUOTA_EXCEEDED
+                    description: Error code
+                  message:
+                    type: string
+                    description: Error message
+                  quota:
+                    type: object
+                    properties:
+                      current:
+                        type: number
+                        description: Current usage count
+                      limit:
+                        type: number
+                        description: Usage limit
+                      period:
+                        type: string
+                        description: Billing period
+                    required:
+                      - current
+                      - limit
+                      - period
+                required:
+                  - error
+                  - message
+                  - quota
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  description: Base64 encoded document (XML or PDF with embedded XML)
+                filename:
+                  description: Original filename (helps detect format)
+                  type: string
+              required:
+                - data
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: countryCode
+          required: true
+        - schema:
+            type: string
+          in: path
+          name: format
+          required: true
+  /api/v1/invoice/parse:
+    post:
+      operationId: postApiV1InvoiceParse
+      tags:
+        - Invoice Parsing
+      summary: Auto-detect and parse e-invoice
+      description: Automatically detect the e-invoice format and country, then parse
+        the document. The country is primarily extracted from the document
+        content (seller country), with fallback to format-based inference.
+        Requires e-invoice:*:*:parse entitlement.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Invoice parsed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether parsing was successful
+                  invoice:
+                    description: Extracted invoice data
+                    type: object
+                    properties:
+                      invoiceNumber:
+                        type: string
+                        description: Unique invoice number
+                      type:
+                        type: string
+                        enum:
+                          - invoice
+                          - credit_note
+                          - proforma
+                          - correction
+                        description: Invoice type
+                      issueDate:
+                        type: string
+                        description: "Issue date (ISO 8601: YYYY-MM-DD)"
+                      dueDate:
+                        type: string
+                        description: "Due date (ISO 8601: YYYY-MM-DD)"
+                      deliveryDate:
+                        description: Delivery date (ISO 8601)
+                        type: string
+                      seller:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Legal name of the party
+                          street:
+                            type: string
+                            description: Street address
+                          city:
+                            type: string
+                            description: City
+                          postalCode:
+                            type: string
+                            description: Postal code
+                          countryCode:
+                            type: string
+                            description: Country code (ISO 3166-1 alpha-2)
+                          taxId:
+                            description: Tax identification number
+                            type: string
+                          vatId:
+                            description: VAT identification number
+                            type: string
+                          email:
+                            description: Email address
+                            type: string
+                          phone:
+                            description: Phone number
+                            type: string
+                        required:
+                          - name
+                          - street
+                          - city
+                          - postalCode
+                          - countryCode
+                        additionalProperties: {}
+                        description: Seller party information
+                      buyer:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Legal name of the party
+                          street:
+                            type: string
+                            description: Street address
+                          city:
+                            type: string
+                            description: City
+                          postalCode:
+                            type: string
+                            description: Postal code
+                          countryCode:
+                            type: string
+                            description: Country code (ISO 3166-1 alpha-2)
+                          taxId:
+                            description: Tax identification number
+                            type: string
+                          vatId:
+                            description: VAT identification number
+                            type: string
+                          email:
+                            description: Email address
+                            type: string
+                          phone:
+                            description: Phone number
+                            type: string
+                        required:
+                          - name
+                          - street
+                          - city
+                          - postalCode
+                          - countryCode
+                        additionalProperties: {}
+                        description: Buyer party information
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            position:
+                              type: integer
+                              exclusiveMinimum: 0
+                              maximum: 9007199254740991
+                              description: Line item position number
+                            description:
+                              type: string
+                              description: Item description
+                            articleNumber:
+                              description: Article/SKU number
+                              type: string
+                            quantity:
+                              type: number
+                              exclusiveMinimum: 0
+                              description: Quantity
+                            unit:
+                              type: string
+                              description: Unit code (UN/ECE Rec 20)
+                            unitPrice:
+                              type: number
+                              description: Unit price (net)
+                            taxRate:
+                              type: number
+                              minimum: 0
+                              maximum: 100
+                              description: Tax rate in percent
+                            taxCategoryCode:
+                              description: Tax category code (EN 16931)
+                              type: string
+                            netAmount:
+                              type: number
+                              description: Net amount (quantity * unitPrice)
+                            taxAmount:
+                              type: number
+                              description: Tax amount
+                            grossAmount:
+                              type: number
+                              description: Gross amount (net + tax)
+                          required:
+                            - position
+                            - description
+                            - quantity
+                            - unit
+                            - unitPrice
+                            - taxRate
+                            - netAmount
+                            - taxAmount
+                            - grossAmount
+                          additionalProperties: {}
+                        description: Invoice line items
+                      currency:
+                        type: string
+                        description: Currency code (ISO 4217)
+                      subtotal:
+                        type: number
+                        description: Total net amount
+                      total:
+                        type: number
+                        description: Total gross amount
+                      taxSummary:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            taxRate:
+                              type: number
+                              description: Tax rate in percent
+                            taxCategoryCode:
+                              description: Tax category code
+                              type: string
+                            netAmount:
+                              type: number
+                              description: Net amount for this tax rate
+                            taxAmount:
+                              type: number
+                              description: Tax amount
+                          required:
+                            - taxRate
+                            - netAmount
+                            - taxAmount
+                          additionalProperties: {}
+                        description: Tax summary per tax rate
+                      paymentTerms:
+                        type: object
+                        properties:
+                          dueDays:
+                            type: number
+                            description: Payment due in days
+                          description:
+                            description: Payment terms description
+                            type: string
+                        required:
+                          - dueDays
+                        additionalProperties: {}
+                        description: Payment terms
+                      notes:
+                        description: Additional notes
+                        type: string
+                    required:
+                      - invoiceNumber
+                      - type
+                      - issueDate
+                      - dueDate
+                      - seller
+                      - buyer
+                      - items
+                      - currency
+                      - subtotal
+                      - total
+                      - taxSummary
+                      - paymentTerms
+                    additionalProperties: {}
+                  detection:
+                    type: object
+                    properties:
+                      format:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                        description: Detected format (e.g., ZUGFERD_EN16931, XRECHNUNG_UBL)
+                      formatVersion:
+                        description: Detected format version
+                        type: string
+                      countryCode:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                        description: Detected country code (ISO 3166-1 alpha-2)
+                      confidence:
+                        type: number
+                        minimum: 0
+                        maximum: 100
+                        description: Detection confidence (0-100)
+                      formatMethod:
+                        type: string
+                        enum:
+                          - NAMESPACE
+                          - ROOT_ELEMENT
+                          - CUSTOMIZATION_ID
+                          - PROFILE_ID
+                          - HEURISTIC
+                        description: Method used for format detection
+                      countrySource:
+                        type: string
+                        enum:
+                          - DOCUMENT
+                          - FORMAT_MAPPING
+                          - UNKNOWN
+                        description: Source of country code detection
+                      isAmbiguous:
+                        type: boolean
+                        description: Whether the format is used by multiple countries
+                      alternativeCountries:
+                        description: Alternative countries for ambiguous formats
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - format
+                      - countryCode
+                      - confidence
+                      - formatMethod
+                      - countrySource
+                      - isAmbiguous
+                    description: Format and country detection result
+                  hash:
+                    description: SHA-256 hash of the input document
+                    type: string
+                  errors:
+                    description: Parsing errors (if any)
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                  warnings:
+                    description: Parsing warnings (if any)
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                required:
+                  - success
+                  - detection
+        "400":
+          description: Bad Request - Invalid document or format not detected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: false
+                    description: Indicates failure
+                  detection:
+                    type: object
+                    properties:
+                      format:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                        description: Detected format (e.g., ZUGFERD_EN16931, XRECHNUNG_UBL)
+                      formatVersion:
+                        description: Detected format version
+                        type: string
+                      countryCode:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                        description: Detected country code (ISO 3166-1 alpha-2)
+                      confidence:
+                        type: number
+                        minimum: 0
+                        maximum: 100
+                        description: Detection confidence (0-100)
+                      formatMethod:
+                        type: string
+                        enum:
+                          - NAMESPACE
+                          - ROOT_ELEMENT
+                          - CUSTOMIZATION_ID
+                          - PROFILE_ID
+                          - HEURISTIC
+                        description: Method used for format detection
+                      countrySource:
+                        type: string
+                        enum:
+                          - DOCUMENT
+                          - FORMAT_MAPPING
+                          - UNKNOWN
+                        description: Source of country code detection
+                      isAmbiguous:
+                        type: boolean
+                        description: Whether the format is used by multiple countries
+                      alternativeCountries:
+                        description: Alternative countries for ambiguous formats
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - format
+                      - countryCode
+                      - confidence
+                      - formatMethod
+                      - countrySource
+                      - isAmbiguous
+                    description: Detection result (may be partial)
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Error message
+                required:
+                  - success
+                  - detection
+                  - error
+                  - message
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "403":
+          description: Forbidden - Missing required entitlement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "429":
+          description: Quota Exceeded - Usage limit reached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    const: QUOTA_EXCEEDED
+                    description: Error code
+                  message:
+                    type: string
+                    description: Error message
+                  quota:
+                    type: object
+                    properties:
+                      current:
+                        type: number
+                        description: Current usage count
+                      limit:
+                        type: number
+                        description: Usage limit
+                      period:
+                        type: string
+                        description: Billing period
+                    required:
+                      - current
+                      - limit
+                      - period
+                required:
+                  - error
+                  - message
+                  - quota
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  description: Base64 encoded document (XML or PDF with embedded XML)
+                filename:
+                  description: Original filename (helps detect format)
+                  type: string
+              required:
+                - data
+  /api/v1/invoice/{countryCode}/validate:
+    post:
+      operationId: postApiV1InvoiceByCountryCodeValidate
+      tags:
+        - Invoice Validation
+      summary: Validate invoice data
+      description: Validate invoice data against country-specific rules and e-invoice
+        format requirements. Returns validation errors and warnings without
+        consuming billing quota.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    description: Whether the invoice is valid
+                  errors:
+                    description: Validation errors
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                  warnings:
+                    description: Validation warnings
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+                        field:
+                          description: Field path (if applicable)
+                          type: string
+                      required:
+                        - code
+                        - message
+                required:
+                  - valid
+        "400":
+          description: Bad Request - Invalid invoice data or unsupported country
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice:
+                  type: object
+                  properties:
+                    invoiceNumber:
+                      type: string
+                      description: Unique invoice number
+                    type:
+                      type: string
+                      enum:
+                        - invoice
+                        - credit_note
+                        - proforma
+                        - correction
+                      description: Invoice type
+                    issueDate:
+                      type: string
+                      description: "Issue date (ISO 8601: YYYY-MM-DD)"
+                    dueDate:
+                      type: string
+                      description: "Due date (ISO 8601: YYYY-MM-DD)"
+                    deliveryDate:
+                      description: Delivery date (ISO 8601)
+                      type: string
+                    seller:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Legal name of the party
+                        street:
+                          type: string
+                          description: Street address
+                        city:
+                          type: string
+                          description: City
+                        postalCode:
+                          type: string
+                          description: Postal code
+                        countryCode:
+                          type: string
+                          description: Country code (ISO 3166-1 alpha-2)
+                        taxId:
+                          description: Tax identification number
+                          type: string
+                        vatId:
+                          description: VAT identification number
+                          type: string
+                        email:
+                          description: Email address
+                          type: string
+                        phone:
+                          description: Phone number
+                          type: string
+                      required:
+                        - name
+                        - street
+                        - city
+                        - postalCode
+                        - countryCode
+                      additionalProperties: {}
+                      description: Seller party information
+                    buyer:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Legal name of the party
+                        street:
+                          type: string
+                          description: Street address
+                        city:
+                          type: string
+                          description: City
+                        postalCode:
+                          type: string
+                          description: Postal code
+                        countryCode:
+                          type: string
+                          description: Country code (ISO 3166-1 alpha-2)
+                        taxId:
+                          description: Tax identification number
+                          type: string
+                        vatId:
+                          description: VAT identification number
+                          type: string
+                        email:
+                          description: Email address
+                          type: string
+                        phone:
+                          description: Phone number
+                          type: string
+                      required:
+                        - name
+                        - street
+                        - city
+                        - postalCode
+                        - countryCode
+                      additionalProperties: {}
+                      description: Buyer party information
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          position:
+                            type: integer
+                            exclusiveMinimum: 0
+                            maximum: 9007199254740991
+                            description: Line item position number
+                          description:
+                            type: string
+                            description: Item description
+                          articleNumber:
+                            description: Article/SKU number
+                            type: string
+                          quantity:
+                            type: number
+                            exclusiveMinimum: 0
+                            description: Quantity
+                          unit:
+                            type: string
+                            description: Unit code (UN/ECE Rec 20)
+                          unitPrice:
+                            type: number
+                            description: Unit price (net)
+                          taxRate:
+                            type: number
+                            minimum: 0
+                            maximum: 100
+                            description: Tax rate in percent
+                          taxCategoryCode:
+                            description: Tax category code (EN 16931)
+                            type: string
+                          netAmount:
+                            type: number
+                            description: Net amount (quantity * unitPrice)
+                          taxAmount:
+                            type: number
+                            description: Tax amount
+                          grossAmount:
+                            type: number
+                            description: Gross amount (net + tax)
+                        required:
+                          - position
+                          - description
+                          - quantity
+                          - unit
+                          - unitPrice
+                          - taxRate
+                          - netAmount
+                          - taxAmount
+                          - grossAmount
+                        additionalProperties: {}
+                      description: Invoice line items
+                    currency:
+                      type: string
+                      description: Currency code (ISO 4217)
+                    subtotal:
+                      type: number
+                      description: Total net amount
+                    total:
+                      type: number
+                      description: Total gross amount
+                    taxSummary:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          taxRate:
+                            type: number
+                            description: Tax rate in percent
+                          taxCategoryCode:
+                            description: Tax category code
+                            type: string
+                          netAmount:
+                            type: number
+                            description: Net amount for this tax rate
+                          taxAmount:
+                            type: number
+                            description: Tax amount
+                        required:
+                          - taxRate
+                          - netAmount
+                          - taxAmount
+                        additionalProperties: {}
+                      description: Tax summary per tax rate
+                    paymentTerms:
+                      type: object
+                      properties:
+                        dueDays:
+                          type: number
+                          description: Payment due in days
+                        description:
+                          description: Payment terms description
+                          type: string
+                      required:
+                        - dueDays
+                      additionalProperties: {}
+                      description: Payment terms
+                    notes:
+                      description: Additional notes
+                      type: string
+                  required:
+                    - invoiceNumber
+                    - type
+                    - issueDate
+                    - dueDate
+                    - seller
+                    - buyer
+                    - items
+                    - currency
+                    - subtotal
+                    - total
+                    - taxSummary
+                    - paymentTerms
+                  additionalProperties: {}
+                  description: Invoice data to validate
+              required:
+                - invoice
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: countryCode
+          required: true
+  /api/v1/invoice/{countryCode}/formats:
+    get:
+      operationId: getApiV1InvoiceByCountryCodeFormats
+      tags:
+        - Formats
+      summary: Get formats for country
+      description: Get all supported invoice formats for a specific country. Returns
+        format identifiers, names, and MIME types.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Country formats retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: Country code
+                  name:
+                    type: string
+                    description: Country name
+                  formats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Format name
+                        id:
+                          type: string
+                          description: Format identifier
+                        mimeType:
+                          type: string
+                          description: Output MIME type
+                        description:
+                          description: Format description
+                          type: string
+                      required:
+                        - name
+                        - id
+                        - mimeType
+                    description: Supported output formats
+                required:
+                  - code
+                  - name
+                  - formats
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+        "404":
+          description: Not Found - Country not supported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: countryCode
+          required: true
+  /api/v1/invoice/formats:
+    get:
+      operationId: getApiV1InvoiceFormats
+      tags:
+        - Formats
+      summary: Get all supported formats
+      description: Get all supported countries and their invoice formats. Useful for
+        discovering available options before generating invoices.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All formats retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  countries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: Country code
+                        name:
+                          type: string
+                          description: Country name
+                        formats:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Format name
+                              id:
+                                type: string
+                                description: Format identifier
+                              mimeType:
+                                type: string
+                                description: Output MIME type
+                              description:
+                                description: Format description
+                                type: string
+                            required:
+                              - name
+                              - id
+                              - mimeType
+                          description: Supported output formats
+                      required:
+                        - code
+                        - name
+                        - formats
+                    description: All supported countries and formats
+                required:
+                  - countries
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error code
+                  message:
+                    type: string
+                    description: Human-readable error message
+                required:
+                  - error
+                  - message

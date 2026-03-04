@@ -1,0 +1,75 @@
+{
+  "name": "n8n-nodes-invoice-api-xhub",
+  "version": "1.0.0",
+  "description": "n8n community nodes for invoice-api.xhub E-Invoice API - Generate, parse, and validate e-invoices across 14 European countries with 18+ formats",
+  "keywords": [
+    "n8n-community-node-package",
+    "e-invoice",
+    "xrechnung",
+    "zugferd",
+    "factur-x",
+    "fatturapa",
+    "peppol",
+    "ubl",
+    "invoice",
+    "germany",
+    "austria",
+    "switzerland",
+    "europe"
+  ],
+  "license": "MIT",
+  "homepage": "https://invoice-api.xhub.io",
+  "author": {
+    "name": "Patrick Jerominek",
+    "email": "support@xhub.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xhubio/n8n-nodes-invoice-api-xhub.git"
+  },
+  "engines": {
+    "node": ">=22.0",
+    "pnpm": ">=9.0"
+  },
+  "packageManager": "pnpm@10.29.3",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && gulp build:icons",
+    "dev": "tsc --watch",
+    "format": "prettier nodes credentials shared --write",
+    "lint": "eslint nodes credentials shared --ext .ts",
+    "lint:fix": "eslint nodes credentials shared --ext .ts --fix",
+    "prepublishOnly": "pnpm build && pnpm lint",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/InvoiceXhubApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/InvoiceXhub/InvoiceXhub.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-n8n-nodes-base": "^1.16.6",
+    "gulp": "^5.0.1",
+    "jest": "^30.2.0",
+    "n8n-workflow": "^2.8.0",
+    "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": ">=1.0.0"
+  }
+}
