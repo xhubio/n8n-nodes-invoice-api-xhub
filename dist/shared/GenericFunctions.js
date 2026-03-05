@@ -40,9 +40,7 @@ async function invoiceXhubApiRequest(method, endpoint, body = {}, qs = {}) {
         return response;
     }
     catch (error) {
-        throw new n8n_workflow_1.NodeApiError(this.getNode(), error, {
-            message: 'invoice-api.xhub API request failed',
-        });
+        throw new n8n_workflow_1.NodeApiError(this.getNode(), error);
     }
 }
 /**

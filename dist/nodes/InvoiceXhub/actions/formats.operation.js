@@ -68,7 +68,7 @@ async function execute(items) {
             else {
                 const countryCode = this.getNodeParameter('countryCode', i);
                 response = await GenericFunctions_1.getCountryFormats.call(this, countryCode);
-                if (!response.success) {
+                if (!response.formats && !response.success) {
                     throw new n8n_workflow_1.NodeOperationError(this.getNode(), (0, GenericFunctions_1.buildErrorMessage)(response), { itemIndex: i });
                 }
                 returnData.push({
@@ -83,6 +83,11 @@ async function execute(items) {
                     json: {
                         success: false,
                         error: error instanceof Error ? error.message : 'Unknown error',
+                        ...(error instanceof Error &&
+                            'description' in error &&
+                            error.description
+                            ? { errorDescription: error.description }
+                            : {}),
                     },
                     pairedItem: { item: i },
                 });

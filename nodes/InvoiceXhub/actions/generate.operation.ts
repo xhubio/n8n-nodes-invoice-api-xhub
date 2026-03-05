@@ -211,6 +211,11 @@ export async function execute(
 					json: {
 						success: false,
 						error: error instanceof Error ? error.message : 'Unknown error',
+						...(error instanceof Error &&
+						'description' in error &&
+						(error as any).description
+							? { errorDescription: (error as any).description }
+							: {}),
 					},
 					pairedItem: { item: i },
 				});

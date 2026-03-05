@@ -107,9 +107,7 @@ export async function invoiceXhubApiRequest(
 		);
 		return response as InvoiceXhubApiResponse;
 	} catch (error) {
-		throw new NodeApiError(this.getNode(), error as JsonObject, {
-			message: 'invoice-api.xhub API request failed',
-		});
+		throw new NodeApiError(this.getNode(), error as JsonObject);
 	}
 }
 
