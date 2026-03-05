@@ -148,8 +148,11 @@ export async function execute(
 						error: error instanceof Error ? error.message : 'Unknown error',
 						...(error instanceof Error &&
 						'description' in error &&
-						(error as any).description
-							? { errorDescription: (error as any).description }
+						(error as Error & { description: string }).description
+							? {
+									errorDescription: (error as Error & { description: string })
+										.description,
+								}
 							: {}),
 					},
 					pairedItem: { item: i },

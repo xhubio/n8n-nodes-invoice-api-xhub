@@ -86,7 +86,10 @@ async function execute(items) {
                         ...(error instanceof Error &&
                             'description' in error &&
                             error.description
-                            ? { errorDescription: error.description }
+                            ? {
+                                errorDescription: error
+                                    .description,
+                            }
                             : {}),
                     },
                     pairedItem: { item: i },
