@@ -88,7 +88,7 @@ export async function execute(
 				const countryCode = this.getNodeParameter('countryCode', i) as string;
 				response = await getCountryFormats.call(this, countryCode);
 
-				if (!response.success) {
+				if (!response.formats && !response.success) {
 					throw new NodeOperationError(
 						this.getNode(),
 						buildErrorMessage(response),

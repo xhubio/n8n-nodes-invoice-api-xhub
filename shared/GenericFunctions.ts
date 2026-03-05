@@ -50,6 +50,9 @@ export interface InvoiceXhubApiResponse {
 	data?: string;
 	invoice?: IDataObject;
 	countries?: IDataObject[];
+	formats?: string[];
+	code?: string;
+	name?: string;
 	detection?: DetectionResult;
 	quota?: QuotaInfo;
 	errors?: Array<{
