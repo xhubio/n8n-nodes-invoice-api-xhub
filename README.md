@@ -3,7 +3,9 @@
 [![npm version](https://badge.fury.io/js/n8n-nodes-invoice-api-xhub.svg)](https://badge.fury.io/js/n8n-nodes-invoice-api-xhub)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Custom n8n Community Node for the invoice-api.xhub E-Invoice API. Generate, parse, and validate e-invoices for 14 European countries with 18+ formats.
+Custom n8n Community Node for the invoice-api.xhub E-Invoice API. Generate, parse, and validate e-invoices for 14 European countries with 18+ formats. 
+
+https://service.invoice-api.xhub.io/api/v1/invoice/
 
 ## Features
 
@@ -635,9 +637,11 @@ MIT
 ## Links
 
 - [invoice-api.xhub Documentation](https://invoice-api.xhub.io/docs)
+- [invoice-api.xhub N8N Integration](https://invoice-api.xhub.io/docs/integrations/n8n)
 - [invoice-api.xhub API Console](https://console.invoice-api.xhub.io)
 - [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
-- [xhub.io](https://xhub.io)
+- [invoice-api.xhub Homepage](https://invoice-api.xhub.io)
+- [xhub.io Homepage](https://xhub.io)
 - [GitHub Repository](https://github.com/xhubio/n8n-nodes-invoice-api-xhub)
 
 ## Support
