@@ -150,5 +150,79 @@ describe('GenericFunctions', () => {
 				invoiceXhubApiRequest.call(mockContext as any, 'POST', '/test', {}),
 			).rejects.toThrow();
 		});
+
+		it('should throw descriptive error for "Missing entitlement" 403 responses', async () => {
+			const entitlementError = Object.assign(
+				new Error('Missing entitlement: e-invoice:de:facturx:parse'),
+				{ statusCode: 403 },
+			);
+			const mockHttp = jest.fn().mockRejectedValue(entitlementError);
+			const mockContext = {
+				getCredentials: jest.fn().mockResolvedValue({
+					apiKey: 'sk_test_key',
+					baseUrl: 'https://api.example.com',
+				}),
+				getNode: jest.fn().mockReturnValue({ name: 'Test' }),
+				helpers: {
+					httpRequestWithAuthentication: mockHttp,
+				},
+			};
+
+			await expect(
+				invoiceXhubApiRequest.call(mockContext as any, 'POST', '/test', {}),
+			).rejects.toMatchObject({
+				message: 'Missing API entitlement: e-invoice:de:facturx:parse',
+				description:
+					'Your API key does not include the required permission for this format/operation. Please check your subscription or contact support.',
+			});
+		});
+
+		it('should extract entitlement message from response body', async () => {
+			const err = Object.assign(new Error('Request failed with status code 403'), {
+				statusCode: 403,
+				response: { body: { message: 'Missing entitlement: e-invoice:de:zugferd:parse' } },
+			});
+			const mockHttp = jest.fn().mockRejectedValue(err);
+			const mockContext = {
+				getCredentials: jest.fn().mockResolvedValue({
+					apiKey: 'sk_test_key',
+					baseUrl: 'https://api.example.com',
+				}),
+				getNode: jest.fn().mockReturnValue({ name: 'Test' }),
+				helpers: {
+					httpRequestWithAuthentication: mockHttp,
+				},
+			};
+
+			await expect(
+				invoiceXhubApiRequest.call(mockContext as any, 'POST', '/test', {}),
+			).rejects.toMatchObject({
+				message: 'Missing API entitlement: e-invoice:de:zugferd:parse',
+			});
+		});
+
+		it('should not modify non-entitlement errors', async () => {
+			const mockHttp = jest.fn().mockRejectedValue(new Error('Connection refused'));
+			const mockContext = {
+				getCredentials: jest.fn().mockResolvedValue({
+					apiKey: 'sk_test_key',
+					baseUrl: 'https://api.example.com',
+				}),
+				getNode: jest.fn().mockReturnValue({ name: 'Test' }),
+				helpers: {
+					httpRequestWithAuthentication: mockHttp,
+				},
+			};
+
+			await expect(
+				invoiceXhubApiRequest.call(mockContext as any, 'POST', '/test', {}),
+			).rejects.toThrow();
+			// Should still throw but NOT match the entitlement pattern
+			try {
+				await invoiceXhubApiRequest.call(mockContext as any, 'POST', '/test', {});
+			} catch (e: any) {
+				expect(e.message).not.toContain('Missing API entitlement');
+			}
+		});
 	});
 });

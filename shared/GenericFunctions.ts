@@ -71,6 +71,22 @@ export interface InvoiceXhubApiResponse {
 }
 
 /**
+ * Extract the API error message from n8n's error object.
+ * The error from httpRequestWithAuthentication can have the API message in
+ * various locations depending on the n8n version.
+ */
+function extractApiMessage(err: JsonObject): string | undefined {
+	if (typeof err.message === 'string' && err.message !== 'Request failed with status code 403') {
+		return err.message;
+	}
+	const body = (err.response as JsonObject)?.body as JsonObject;
+	if (typeof body?.message === 'string') return body.message;
+	const cause = (err as Record<string, unknown>).cause as JsonObject;
+	if (typeof cause?.message === 'string') return cause.message;
+	return undefined;
+}
+
+/**
  * Make an authenticated request to the invoice-api.xhub API
  */
 export async function invoiceXhubApiRequest(
@@ -107,7 +123,18 @@ export async function invoiceXhubApiRequest(
 		);
 		return response as InvoiceXhubApiResponse;
 	} catch (error) {
-		throw new NodeApiError(this.getNode(), error as JsonObject);
+		const err = error as JsonObject;
+		const apiMessage = extractApiMessage(err);
+
+		if (apiMessage?.includes('Missing entitlement')) {
+			throw new NodeApiError(this.getNode(), err, {
+				message: `Missing API entitlement: ${apiMessage.replace('Missing entitlement: ', '')}`,
+				description:
+					'Your API key does not include the required permission for this format/operation. Please check your subscription or contact support.',
+			});
+		}
+
+		throw new NodeApiError(this.getNode(), err);
 	}
 }
 

@@ -28,7 +28,17 @@ const invoiceData = JSON.parse(
 	fs.readFileSync(path.resolve(__dirname, 'invoice.json'), 'utf-8'),
 );
 
+const invoiceDataRE2026164 = JSON.parse(
+	fs.readFileSync(path.resolve(__dirname, 'fixtures', 'invoice-RE-2026-164.json'), 'utf-8'),
+);
+
 jest.setTimeout(30_000);
+
+/** Load a file from fixtures/ as base64. */
+function loadFileAsBase64(filename: string): string {
+	const filePath = path.resolve(__dirname, 'fixtures', filename);
+	return fs.readFileSync(filePath).toString('base64');
+}
 
 /** Load cached fixture or generate live and cache. Fails if neither works. */
 async function requireFixture(fixtureName: string, format: string): Promise<string> {
@@ -187,10 +197,36 @@ describe('Generate Invoice', () => {
 	});
 });
 
-// ─── PARSE (requires parse entitlement — tests error handling if missing) ─────
+// ─── GENERATE RE-2026-164 ─────────────────────────────────────────────────────
 
-describe('Parse Invoice (no parse entitlement)', () => {
-	it('should propagate 403 as error item via continueOnFail', async () => {
+describe('Generate Invoice RE-2026-164', () => {
+	it('should generate ZUGFeRD with RE-2026-164 data as base64 PDF', async () => {
+		const ctx = createLiveExecuteFunctions({
+			nodeParameters: {
+				countryCode: 'DE',
+				format: 'zugferd',
+				invoiceData: invoiceDataRE2026164,
+				options: { outputBinary: false },
+			},
+		});
+
+		const result = await generate.execute.call(ctx, [createLiveItem()]);
+
+		expect(result).toHaveLength(1);
+		expect(result[0].json.success).toBe(true);
+		expect(result[0].json.format).toBe('zugferd');
+
+		const pdfBuffer = Buffer.from(result[0].json.data as string, 'base64');
+		expect(pdfBuffer.subarray(0, 5).toString('ascii')).toBe('%PDF-');
+
+		saveFixture('de-zugferd-RE-2026-164', result[0].json.data as string);
+	});
+});
+
+// ─── PARSE ────────────────────────────────────────────────────────────────────
+
+describe('Parse Invoice', () => {
+	it('should parse XRechnung or return entitlement error', async () => {
 		const xrechnungBase64 = await requireFixture('de-xrechnung', 'xrechnung');
 
 		const ctx = createLiveExecuteFunctions({
@@ -199,7 +235,7 @@ describe('Parse Invoice (no parse entitlement)', () => {
 				format: 'xrechnung',
 				inputType: 'base64',
 				base64Data: xrechnungBase64,
-				options: { filename: 'invoice.xml' },
+				options: { filename: 'invoice.xml', includeWarnings: true },
 			},
 			continueOnFail: true,
 		});
@@ -207,37 +243,63 @@ describe('Parse Invoice (no parse entitlement)', () => {
 		const result = await parse.execute.call(ctx, [createLiveItem()]);
 
 		expect(result).toHaveLength(1);
-		expect(result[0].json.success).toBe(false);
-		expect(result[0].json.error).toContain('Missing entitlement');
+
+		if (result[0].json.success) {
+			expect(result[0].json.format).toBeDefined();
+			expect(result[0].json.hash).toBeDefined();
+			expect(result[0].json.invoice).toBeDefined();
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2025-001');
+			expect(invoice.currency).toBe('EUR');
+			expect(invoice.total).toBe(2378.81);
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
 	});
 
-	it('should throw NodeApiError without continueOnFail', async () => {
-		const xrechnungBase64 = await requireFixture('de-xrechnung', 'xrechnung');
+	it('should parse ZUGFeRD or return entitlement error', async () => {
+		const zugferdBase64 = await requireFixture('de-zugferd', 'zugferd');
 
 		const ctx = createLiveExecuteFunctions({
 			nodeParameters: {
 				countryCode: 'DE',
-				format: 'xrechnung',
+				format: 'zugferd',
 				inputType: 'base64',
-				base64Data: xrechnungBase64,
-				options: { filename: 'invoice.xml' },
+				base64Data: zugferdBase64,
+				options: { filename: 'invoice.pdf', includeWarnings: true },
 			},
-			continueOnFail: false,
+			continueOnFail: true,
 		});
 
-		await expect(parse.execute.call(ctx, [createLiveItem()])).rejects.toThrow();
+		const result = await parse.execute.call(ctx, [createLiveItem()]);
+
+		expect(result).toHaveLength(1);
+
+		if (result[0].json.success) {
+			expect(result[0].json.format).toBeDefined();
+			expect(result[0].json.hash).toBeDefined();
+			expect(result[0].json.invoice).toBeDefined();
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2025-001');
+			expect(invoice.currency).toBe('EUR');
+			expect(invoice.total).toBe(2378.81);
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
 	});
 });
 
-describe('Parse Auto-Detect (no parse entitlement)', () => {
-	it('should propagate 403 as error item via continueOnFail', async () => {
-		const base64 = await requireFixture('de-xrechnung', 'xrechnung');
+describe('Parse Auto-Detect', () => {
+	it('should auto-detect XRechnung or return entitlement error', async () => {
+		const xrechnungBase64 = await requireFixture('de-xrechnung', 'xrechnung');
 
 		const ctx = createLiveExecuteFunctions({
 			nodeParameters: {
 				inputType: 'base64',
-				base64Data: base64,
-				options: { filename: 'invoice.xml' },
+				base64Data: xrechnungBase64,
+				options: { filename: 'invoice.xml', includeWarnings: true },
 			},
 			continueOnFail: true,
 		});
@@ -245,8 +307,142 @@ describe('Parse Auto-Detect (no parse entitlement)', () => {
 		const result = await parseAutoDetect.execute.call(ctx, [createLiveItem()]);
 
 		expect(result).toHaveLength(1);
-		expect(result[0].json.success).toBe(false);
-		expect(result[0].json.error).toContain('Missing entitlement');
+
+		if (result[0].json.success) {
+			expect(result[0].json.invoice).toBeDefined();
+			expect(result[0].json.detectedFormat).toBeDefined();
+			expect(result[0].json.detectedCountry).toBe('DE');
+			expect(result[0].json.confidence).toBeGreaterThan(0);
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2025-001');
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
+	});
+});
+
+// ─── PARSE REAL FACTUR-X DOCUMENT ─────────────────────────────────────────────
+
+describe('Parse with real Factur-X document', () => {
+	it('should parse real Factur-X PDF (format=zugferd) or return entitlement error', async () => {
+		const pdfBase64 = loadFileAsBase64('zugferd-RE-2026-164.pdf');
+
+		const ctx = createLiveExecuteFunctions({
+			nodeParameters: {
+				countryCode: 'DE',
+				format: 'zugferd',
+				inputType: 'base64',
+				base64Data: pdfBase64,
+				options: { filename: 'zugferd-RE-2026-164.pdf', includeWarnings: true },
+			},
+			continueOnFail: true,
+		});
+
+		const result = await parse.execute.call(ctx, [createLiveItem()]);
+
+		expect(result).toHaveLength(1);
+
+		if (result[0].json.success) {
+			expect(result[0].json.format).toBeDefined();
+			expect(result[0].json.invoice).toBeDefined();
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2026-164');
+			expect(invoice.currency).toBe('EUR');
+			expect(invoice.total).toBe(14299.04);
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
+	});
+
+	it('should auto-detect real Factur-X PDF or return entitlement error', async () => {
+		const pdfBase64 = loadFileAsBase64('zugferd-RE-2026-164.pdf');
+
+		const ctx = createLiveExecuteFunctions({
+			nodeParameters: {
+				inputType: 'base64',
+				base64Data: pdfBase64,
+				options: { filename: 'zugferd-RE-2026-164.pdf', includeWarnings: true },
+			},
+			continueOnFail: true,
+		});
+
+		const result = await parseAutoDetect.execute.call(ctx, [createLiveItem()]);
+
+		expect(result).toHaveLength(1);
+
+		if (result[0].json.success) {
+			expect(result[0].json.invoice).toBeDefined();
+			expect(result[0].json.detectedCountry).toBe('DE');
+			expect(result[0].json.detectedFormat).toBeDefined();
+			expect(result[0].json.confidence).toBeGreaterThan(0);
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2026-164');
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
+	});
+
+	it('should parse real Factur-X XML (format=zugferd) or return entitlement error', async () => {
+		const xmlBase64 = loadFileAsBase64('zugferd-RE-2026-164.xml');
+
+		const ctx = createLiveExecuteFunctions({
+			nodeParameters: {
+				countryCode: 'DE',
+				format: 'zugferd',
+				inputType: 'base64',
+				base64Data: xmlBase64,
+				options: { filename: 'zugferd-RE-2026-164.xml', includeWarnings: true },
+			},
+			continueOnFail: true,
+		});
+
+		const result = await parse.execute.call(ctx, [createLiveItem()]);
+
+		expect(result).toHaveLength(1);
+
+		if (result[0].json.success) {
+			expect(result[0].json.format).toBeDefined();
+			expect(result[0].json.invoice).toBeDefined();
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2026-164');
+			expect(invoice.currency).toBe('EUR');
+			expect(invoice.total).toBe(14299.04);
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
+	});
+
+	it('should auto-detect real Factur-X XML or return entitlement error', async () => {
+		const xmlBase64 = loadFileAsBase64('zugferd-RE-2026-164.xml');
+
+		const ctx = createLiveExecuteFunctions({
+			nodeParameters: {
+				inputType: 'base64',
+				base64Data: xmlBase64,
+				options: { filename: 'zugferd-RE-2026-164.xml', includeWarnings: true },
+			},
+			continueOnFail: true,
+		});
+
+		const result = await parseAutoDetect.execute.call(ctx, [createLiveItem()]);
+
+		expect(result).toHaveLength(1);
+
+		if (result[0].json.success) {
+			expect(result[0].json.invoice).toBeDefined();
+			expect(result[0].json.detectedCountry).toBe('DE');
+			expect(result[0].json.detectedFormat).toBeDefined();
+			expect(result[0].json.confidence).toBeGreaterThan(0);
+
+			const invoice = result[0].json.invoice as Record<string, unknown>;
+			expect(invoice.invoiceNumber).toBe('RE-2026-164');
+		} else {
+			expect(result[0].json.error).toContain('entitlement');
+		}
 	});
 });
 

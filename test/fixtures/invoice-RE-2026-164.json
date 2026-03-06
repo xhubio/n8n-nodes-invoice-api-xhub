@@ -1,0 +1,52 @@
+{
+	"invoiceNumber": "RE-2026-164",
+	"type": "invoice",
+	"issueDate": "2026-03-04",
+	"dueDate": "2026-04-03",
+	"currency": "EUR",
+	"seller": {
+		"name": "TechSoft Solutions GmbH123",
+		"vatId": "DE136695976",
+		"street": "Innovationsweg 42",
+		"postalCode": "80331",
+		"city": "München",
+		"countryCode": "DE",
+		"email": "buchhaltung@techsoft.de"
+	},
+	"buyer": {
+		"name": "Digital Services AG234",
+		"street": "Hauptstraße 15",
+		"postalCode": "10115",
+		"city": "Berlin",
+		"countryCode": "DE"
+	},
+	"items": [
+		{
+			"position": 1,
+			"description": "IT-Beratung und Softwareentwicklung",
+			"quantity": 8,
+			"unit": "C62",
+			"unitPrice": 1502,
+			"taxRate": 19,
+			"netAmount": 12016,
+			"taxAmount": 2283.04,
+			"grossAmount": 14299.04
+		}
+	],
+	"taxSummary": [
+		{
+			"taxRate": 19,
+			"netAmount": 12016,
+			"taxAmount": 2283.04
+		}
+	],
+	"subtotal": 12016,
+	"total": 14299.04,
+	"paymentTerms": {
+		"dueDays": 30,
+		"description": "Zahlbar innerhalb von 30 Tagen"
+	},
+	"countrySpecific": {
+		"countryCode": "DE"
+	}
+}
