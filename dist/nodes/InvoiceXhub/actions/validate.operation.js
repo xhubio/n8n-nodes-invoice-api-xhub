@@ -76,7 +76,9 @@ async function execute(items) {
                     invoiceData = JSON.parse(invoiceDataRaw);
                 }
                 catch {
-                    throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'Invoice data must be valid JSON', { itemIndex: i });
+                    throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'Invoice data must be valid JSON', {
+                        itemIndex: i,
+                    });
                 }
             }
             else {
@@ -120,8 +122,7 @@ async function execute(items) {
                             'description' in error &&
                             error.description
                             ? {
-                                errorDescription: error
-                                    .description,
+                                errorDescription: error.description,
                             }
                             : {}),
                     },

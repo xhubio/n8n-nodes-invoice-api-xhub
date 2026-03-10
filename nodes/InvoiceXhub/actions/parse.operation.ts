@@ -7,11 +7,7 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import { COUNTRY_OPTIONS, FORMAT_OPTIONS } from '../../../shared/constants';
-import {
-	parseInvoice,
-	binaryToBase64,
-	buildErrorMessage,
-} from '../../../shared/GenericFunctions';
+import { parseInvoice, binaryToBase64, buildErrorMessage } from '../../../shared/GenericFunctions';
 
 export const description: INodeProperties[] = [
 	{
@@ -165,28 +161,14 @@ export async function execute(
 			}
 
 			if (!base64Data) {
-				throw new NodeOperationError(
-					this.getNode(),
-					'No document data provided',
-					{ itemIndex: i },
-				);
+				throw new NodeOperationError(this.getNode(), 'No document data provided', { itemIndex: i });
 			}
 
 			// Call the API
-			const response = await parseInvoice.call(
-				this,
-				countryCode,
-				format,
-				base64Data,
-				filename,
-			);
+			const response = await parseInvoice.call(this, countryCode, format, base64Data, filename);
 
 			if (!response.success) {
-				throw new NodeOperationError(
-					this.getNode(),
-					buildErrorMessage(response),
-					{ itemIndex: i },
-				);
+				throw new NodeOperationError(this.getNode(), buildErrorMessage(response), { itemIndex: i });
 			}
 
 			// Build output data
@@ -216,8 +198,7 @@ export async function execute(
 						'description' in error &&
 						(error as Error & { description: string }).description
 							? {
-									errorDescription: (error as Error & { description: string })
-										.description,
+									errorDescription: (error as Error & { description: string }).description,
 								}
 							: {}),
 					},

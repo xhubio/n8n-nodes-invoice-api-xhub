@@ -85,22 +85,16 @@ export async function execute(
 				try {
 					invoiceData = JSON.parse(invoiceDataRaw) as IDataObject;
 				} catch {
-					throw new NodeOperationError(
-						this.getNode(),
-						'Invoice data must be valid JSON',
-						{ itemIndex: i },
-					);
+					throw new NodeOperationError(this.getNode(), 'Invoice data must be valid JSON', {
+						itemIndex: i,
+					});
 				}
 			} else {
 				invoiceData = invoiceDataRaw;
 			}
 
 			// Call the API
-			const response = await validateInvoice.call(
-				this,
-				countryCode,
-				invoiceData,
-			);
+			const response = await validateInvoice.call(this, countryCode, invoiceData);
 
 			// Determine validity: prefer explicit `valid` field, fall back to success/errors
 			const isValid =
@@ -150,8 +144,7 @@ export async function execute(
 						'description' in error &&
 						(error as Error & { description: string }).description
 							? {
-									errorDescription: (error as Error & { description: string })
-										.description,
+									errorDescription: (error as Error & { description: string }).description,
 								}
 							: {}),
 					},

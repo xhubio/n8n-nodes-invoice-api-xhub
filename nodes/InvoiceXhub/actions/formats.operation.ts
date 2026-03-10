@@ -70,11 +70,9 @@ export async function execute(
 				response = await getAllFormats.call(this);
 
 				if (!response.countries) {
-					throw new NodeOperationError(
-						this.getNode(),
-						buildErrorMessage(response),
-						{ itemIndex: i },
-					);
+					throw new NodeOperationError(this.getNode(), buildErrorMessage(response), {
+						itemIndex: i,
+					});
 				}
 
 				returnData.push({
@@ -89,11 +87,9 @@ export async function execute(
 				response = await getCountryFormats.call(this, countryCode);
 
 				if (!response.formats && !response.success) {
-					throw new NodeOperationError(
-						this.getNode(),
-						buildErrorMessage(response),
-						{ itemIndex: i },
-					);
+					throw new NodeOperationError(this.getNode(), buildErrorMessage(response), {
+						itemIndex: i,
+					});
 				}
 
 				returnData.push({
@@ -111,8 +107,7 @@ export async function execute(
 						'description' in error &&
 						(error as Error & { description: string }).description
 							? {
-									errorDescription: (error as Error & { description: string })
-										.description,
+									errorDescription: (error as Error & { description: string }).description,
 								}
 							: {}),
 					},

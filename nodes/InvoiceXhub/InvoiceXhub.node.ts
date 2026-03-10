@@ -16,7 +16,8 @@ export class InvoiceXhub implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Generate, parse, and validate e-invoices across 14 European countries with 18+ formats',
+		description:
+			'Generate, parse, and validate e-invoices across 14 European countries with 18+ formats',
 		defaults: {
 			name: 'invoice-api.xhub',
 		},
@@ -56,8 +57,7 @@ export class InvoiceXhub implements INodeType {
 					{
 						name: 'Parse (Auto-Detect)',
 						value: 'parseAutoDetect',
-						description:
-							'Parse an e-invoice with automatic country and format detection',
+						description: 'Parse an e-invoice with automatic country and format detection',
 						action: 'Parse an e invoice with auto detection',
 					},
 					{

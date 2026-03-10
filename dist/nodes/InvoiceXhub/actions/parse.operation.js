@@ -176,8 +176,7 @@ async function execute(items) {
                             'description' in error &&
                             error.description
                             ? {
-                                errorDescription: error
-                                    .description,
+                                errorDescription: error.description,
                             }
                             : {}),
                     },

@@ -123,11 +123,9 @@ export async function execute(
 				try {
 					invoiceData = JSON.parse(invoiceDataRaw) as IDataObject;
 				} catch {
-					throw new NodeOperationError(
-						this.getNode(),
-						'Invoice data must be valid JSON',
-						{ itemIndex: i },
-					);
+					throw new NodeOperationError(this.getNode(), 'Invoice data must be valid JSON', {
+						itemIndex: i,
+					});
 				}
 			} else {
 				invoiceData = invoiceDataRaw;
@@ -140,11 +138,9 @@ export async function execute(
 					try {
 						formatOptions = JSON.parse(options.formatOptions) as IDataObject;
 					} catch {
-						throw new NodeOperationError(
-							this.getNode(),
-							'Format options must be valid JSON',
-							{ itemIndex: i },
-						);
+						throw new NodeOperationError(this.getNode(), 'Format options must be valid JSON', {
+							itemIndex: i,
+						});
 					}
 				} else {
 					formatOptions = options.formatOptions as IDataObject;
@@ -161,11 +157,7 @@ export async function execute(
 			);
 
 			if (!response.success) {
-				throw new NodeOperationError(
-					this.getNode(),
-					buildErrorMessage(response),
-					{ itemIndex: i },
-				);
+				throw new NodeOperationError(this.getNode(), buildErrorMessage(response), { itemIndex: i });
 			}
 
 			// Build output data
@@ -215,8 +207,7 @@ export async function execute(
 						'description' in error &&
 						(error as Error & { description: string }).description
 							? {
-									errorDescription: (error as Error & { description: string })
-										.description,
+									errorDescription: (error as Error & { description: string }).description,
 								}
 							: {}),
 					},

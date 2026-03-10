@@ -5,7 +5,9 @@
 
 Custom n8n Community Node for the invoice-api.xhub E-Invoice API. Generate, parse, and validate e-invoices for 14 European countries with 18+ formats. 
 
-https://service.invoice-api.xhub.io/api/v1/invoice/
+https://invoice-api.xhub.io - E-Invoice API for Developers – XRechnung, ZUGFeRD, Peppol
+
+https://service.invoice-api.xhub.io/api/v1/invoice/ - API endpoint for Developers 
 
 ## Features
 

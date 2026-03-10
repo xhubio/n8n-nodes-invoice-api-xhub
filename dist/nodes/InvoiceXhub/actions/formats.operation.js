@@ -55,7 +55,9 @@ async function execute(items) {
             if (scope === 'all') {
                 response = await GenericFunctions_1.getAllFormats.call(this);
                 if (!response.countries) {
-                    throw new n8n_workflow_1.NodeOperationError(this.getNode(), (0, GenericFunctions_1.buildErrorMessage)(response), { itemIndex: i });
+                    throw new n8n_workflow_1.NodeOperationError(this.getNode(), (0, GenericFunctions_1.buildErrorMessage)(response), {
+                        itemIndex: i,
+                    });
                 }
                 returnData.push({
                     json: {
@@ -69,7 +71,9 @@ async function execute(items) {
                 const countryCode = this.getNodeParameter('countryCode', i);
                 response = await GenericFunctions_1.getCountryFormats.call(this, countryCode);
                 if (!response.formats && !response.success) {
-                    throw new n8n_workflow_1.NodeOperationError(this.getNode(), (0, GenericFunctions_1.buildErrorMessage)(response), { itemIndex: i });
+                    throw new n8n_workflow_1.NodeOperationError(this.getNode(), (0, GenericFunctions_1.buildErrorMessage)(response), {
+                        itemIndex: i,
+                    });
                 }
                 returnData.push({
                     json: response,
@@ -87,8 +91,7 @@ async function execute(items) {
                             'description' in error &&
                             error.description
                             ? {
-                                errorDescription: error
-                                    .description,
+                                errorDescription: error.description,
                             }
                             : {}),
                     },

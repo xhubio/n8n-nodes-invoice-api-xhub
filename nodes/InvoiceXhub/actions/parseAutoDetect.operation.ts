@@ -183,8 +183,7 @@ export async function execute(
 						'description' in error &&
 						(error as Error & { description: string }).description
 							? {
-									errorDescription: (error as Error & { description: string })
-										.description,
+									errorDescription: (error as Error & { description: string }).description,
 								}
 							: {}),
 					},
