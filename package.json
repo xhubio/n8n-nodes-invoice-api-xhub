@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-invoice-api-xhub",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "n8n community nodes for invoice-api.xhub E-Invoice API - Generate, parse, and validate e-invoices across 14 European countries with 18+ formats",
   "keywords": [
     "n8n-community-node-package",
