@@ -61,6 +61,7 @@
     "lint:fix": "eslint nodes credentials shared --ext .ts --fix",
     "prepublishOnly": "pnpm build && pnpm lint",
     "test": "jest",
+    "test:ci": "jest --testPathIgnorePatterns='integration'",
     "release": "./scripts/release.sh",
     "release:minor": "./scripts/release.sh minor",
     "release:major": "./scripts/release.sh major"
