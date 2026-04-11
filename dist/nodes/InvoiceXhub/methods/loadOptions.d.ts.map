@@ -1,0 +1,1 @@
+{"version":3,"file":"loadOptions.d.ts","sourceRoot":"","sources":["../../../../nodes/InvoiceXhub/methods/loadOptions.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,qBAAqB,EAAE,qBAAqB,EAAE,MAAM,cAAc,CAAC;AAIjF,eAAO,MAAM,UAAU;0BAEf,qBAAqB,WAClB,MAAM,GACb,OAAO,CAAC,qBAAqB,CAAC;wBAQ1B,qBAAqB,WAClB,MAAM,GACb,OAAO,CAAC,qBAAqB,CAAC;CAMjC,CAAC"}

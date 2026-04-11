@@ -3,15 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.description = void 0;
 exports.execute = execute;
 const n8n_workflow_1 = require("n8n-workflow");
-const constants_1 = require("../../../shared/constants");
 const GenericFunctions_1 = require("../../../shared/GenericFunctions");
 exports.description = [
     {
         displayName: 'Country',
         name: 'countryCode',
-        type: 'options',
-        options: constants_1.COUNTRY_OPTIONS,
-        default: 'DE',
+        type: 'resourceLocator',
+        default: { mode: 'list', value: 'DE' },
         required: true,
         displayOptions: {
             show: {
@@ -19,13 +17,39 @@ exports.description = [
             },
         },
         description: 'The country of the invoice to parse',
+        modes: [
+            {
+                displayName: 'From List',
+                name: 'list',
+                type: 'list',
+                typeOptions: {
+                    searchListMethod: 'searchCountries',
+                    searchable: true,
+                },
+            },
+            {
+                displayName: 'Country Code',
+                name: 'id',
+                type: 'string',
+                hint: 'Enter a two-letter ISO country code (e.g. DE, AT, FR)',
+                placeholder: 'DE',
+                validation: [
+                    {
+                        type: 'regex',
+                        properties: {
+                            regex: '^[A-Z]{2}$',
+                            errorMessage: 'Country code must be two uppercase letters (e.g. DE)',
+                        },
+                    },
+                ],
+            },
+        ],
     },
     {
         displayName: 'Expected Format',
         name: 'format',
-        type: 'options',
-        options: constants_1.FORMAT_OPTIONS,
-        default: 'xrechnung',
+        type: 'resourceLocator',
+        default: { mode: 'list', value: 'xrechnung' },
         required: true,
         displayOptions: {
             show: {
@@ -33,6 +57,24 @@ exports.description = [
             },
         },
         description: 'The expected format of the invoice document',
+        modes: [
+            {
+                displayName: 'From List',
+                name: 'list',
+                type: 'list',
+                typeOptions: {
+                    searchListMethod: 'searchFormats',
+                    searchable: true,
+                },
+            },
+            {
+                displayName: 'Format ID',
+                name: 'id',
+                type: 'string',
+                hint: 'Enter a format identifier (e.g. xrechnung, zugferd, facturx)',
+                placeholder: 'xrechnung',
+            },
+        ],
     },
     {
         displayName: 'Input Type',
@@ -119,8 +161,10 @@ async function execute(items) {
     const returnData = [];
     for (let i = 0; i < items.length; i++) {
         try {
-            const countryCode = this.getNodeParameter('countryCode', i);
-            const format = this.getNodeParameter('format', i);
+            const countryCode = this.getNodeParameter('countryCode', i, '', {
+                extractValue: true,
+            });
+            const format = this.getNodeParameter('format', i, '', { extractValue: true });
             const inputType = this.getNodeParameter('inputType', i);
             const options = this.getNodeParameter('options', i, {});
             let base64Data;

@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvoiceXhub = void 0;
 const n8n_workflow_1 = require("n8n-workflow");
 const actions = __importStar(require("./actions"));
+const loadOptions_1 = require("./methods/loadOptions");
 class InvoiceXhub {
     description = {
         displayName: 'invoice-api.xhub',
@@ -107,6 +108,16 @@ class InvoiceXhub {
             // Get Formats operation properties
             ...actions.formats.description,
         ],
+    };
+    methods = {
+        listSearch: {
+            async searchCountries(filter) {
+                return loadOptions_1.listSearch.searchCountries.call(this, filter);
+            },
+            async searchFormats(filter) {
+                return loadOptions_1.listSearch.searchFormats.call(this, filter);
+            },
+        },
     };
     async execute() {
         const items = this.getInputData();

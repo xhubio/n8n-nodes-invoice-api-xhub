@@ -116,17 +116,17 @@ Now we'll add the invoice data in JSON format. This includes seller, buyer, line
 
 ```json
 {
+  "type": "invoice",
   "invoiceNumber": "INV-2025-001",
-  "invoiceDate": "2025-01-15",
+  "issueDate": "2025-01-15",
   "dueDate": "2025-02-14",
+  "currency": "EUR",
   "seller": {
     "name": "ACME GmbH",
-    "address": {
-      "street": "Hauptstraße 1",
-      "city": "Berlin",
-      "postalCode": "10115",
-      "country": "DE"
-    },
+    "street": "Hauptstraße 1",
+    "city": "Berlin",
+    "postalCode": "10115",
+    "countryCode": "DE",
     "vatId": "DE123456789",
     "email": "invoices@acme.de",
     "bankAccount": {
@@ -137,23 +137,24 @@ Now we'll add the invoice data in JSON format. This includes seller, buyer, line
   },
   "buyer": {
     "name": "Customer AG",
-    "address": {
-      "street": "Nebenstraße 2",
-      "city": "München",
-      "postalCode": "80331",
-      "country": "DE"
-    },
+    "street": "Nebenstraße 2",
+    "city": "München",
+    "postalCode": "80331",
+    "countryCode": "DE",
     "vatId": "DE987654321",
     "email": "billing@customer.de"
   },
-  "lineItems": [
+  "items": [
     {
       "position": 1,
       "description": "Consulting Services - Project Alpha",
       "quantity": 10,
       "unit": "HUR",
       "unitPrice": 150.00,
-      "vatRate": 19
+      "netAmount": 1500.00,
+      "taxRate": 19,
+      "taxAmount": 285.00,
+      "grossAmount": 1785.00
     },
     {
       "position": 2,
@@ -161,12 +162,25 @@ Now we'll add the invoice data in JSON format. This includes seller, buyer, line
       "quantity": 1,
       "unit": "C62",
       "unitPrice": 500.00,
-      "vatRate": 19
+      "netAmount": 500.00,
+      "taxRate": 19,
+      "taxAmount": 95.00,
+      "grossAmount": 595.00
     }
   ],
-  "currency": "EUR",
-  "total": 2499.00,
-  "paymentTerms": "Net 30 days",
+  "taxSummary": [
+    {
+      "taxRate": 19,
+      "netAmount": 2000.00,
+      "taxAmount": 380.00
+    }
+  ],
+  "subtotal": 2000.00,
+  "total": 2380.00,
+  "paymentTerms": {
+    "dueDays": 30,
+    "description": "Net 30 days"
+  },
   "notes": "Thank you for your business!"
 }
 ```
@@ -175,14 +189,18 @@ Now we'll add the invoice data in JSON format. This includes seller, buyer, line
 
 | Field | Required | Description |
 |-------|----------|-------------|
+| `type` | Yes | Invoice type (`invoice`, `credit_note`, `proforma`, `correction`) |
 | `invoiceNumber` | Yes | Unique invoice identifier |
-| `invoiceDate` | Yes | Issue date (YYYY-MM-DD) |
-| `dueDate` | No | Payment due date |
-| `seller` | Yes | Your company details |
-| `buyer` | Yes | Customer details |
-| `lineItems` | Yes | Products/services invoiced |
+| `issueDate` | Yes | Issue date (YYYY-MM-DD) |
+| `dueDate` | Yes | Payment due date (YYYY-MM-DD) |
 | `currency` | Yes | ISO 4217 currency code |
-| `total` | Yes | Total invoice amount |
+| `seller` | Yes | Your company details (flat address fields) |
+| `buyer` | Yes | Customer details (flat address fields) |
+| `items` | Yes | Products/services invoiced |
+| `taxSummary` | Yes | Tax breakdown per rate |
+| `subtotal` | Yes | Net total before tax |
+| `total` | Yes | Gross total including tax |
+| `paymentTerms` | Yes | Payment terms object (`dueDays`, optional `description`) |
 
 ### Unit Codes (UN/ECE Rec. 20)
 
@@ -264,17 +282,22 @@ The API may return warnings for recommended but non-required fields. Let's learn
 
 ### Try This
 
-Modify the invoice data to remove `paymentTerms`:
+Modify the invoice data to remove optional fields like `notes`:
 
 ```json
 {
+  "type": "invoice",
   "invoiceNumber": "INV-2025-002",
-  "invoiceDate": "2025-01-15",
+  "issueDate": "2025-01-15",
+  "dueDate": "2025-02-14",
+  "currency": "EUR",
   "seller": { ... },
   "buyer": { ... },
-  "lineItems": [ ... ],
-  "currency": "EUR",
-  "total": 2499.00
+  "items": [ ... ],
+  "taxSummary": [ ... ],
+  "subtotal": 2000.00,
+  "total": 2380.00,
+  "paymentTerms": { "dueDays": 30 }
 }
 ```
 
@@ -452,7 +475,7 @@ Copy the JSON below and use **Import from URL** or paste directly:
         "operation": "generate",
         "countryCode": "DE",
         "format": "pdf",
-        "invoiceData": "{\n  \"invoiceNumber\": \"INV-2025-001\",\n  \"invoiceDate\": \"2025-01-15\",\n  \"dueDate\": \"2025-02-14\",\n  \"seller\": {\n    \"name\": \"ACME GmbH\",\n    \"address\": {\n      \"street\": \"Hauptstraße 1\",\n      \"city\": \"Berlin\",\n      \"postalCode\": \"10115\",\n      \"country\": \"DE\"\n    },\n    \"vatId\": \"DE123456789\",\n    \"email\": \"invoices@acme.de\"\n  },\n  \"buyer\": {\n    \"name\": \"Customer AG\",\n    \"address\": {\n      \"street\": \"Nebenstraße 2\",\n      \"city\": \"München\",\n      \"postalCode\": \"80331\",\n      \"country\": \"DE\"\n    },\n    \"vatId\": \"DE987654321\"\n  },\n  \"lineItems\": [\n    {\n      \"position\": 1,\n      \"description\": \"Consulting Services\",\n      \"quantity\": 10,\n      \"unit\": \"HUR\",\n      \"unitPrice\": 150.00,\n      \"vatRate\": 19\n    }\n  ],\n  \"currency\": \"EUR\",\n  \"total\": 1785.00\n}"
+        "invoiceData": "{\n  \"type\": \"invoice\",\n  \"invoiceNumber\": \"INV-2025-001\",\n  \"issueDate\": \"2025-01-15\",\n  \"dueDate\": \"2025-02-14\",\n  \"currency\": \"EUR\",\n  \"seller\": {\n    \"name\": \"ACME GmbH\",\n    \"street\": \"Hauptstraße 1\",\n    \"city\": \"Berlin\",\n    \"postalCode\": \"10115\",\n    \"countryCode\": \"DE\",\n    \"vatId\": \"DE123456789\"\n  },\n  \"buyer\": {\n    \"name\": \"Customer AG\",\n    \"street\": \"Nebenstraße 2\",\n    \"city\": \"München\",\n    \"postalCode\": \"80331\",\n    \"countryCode\": \"DE\"\n  },\n  \"items\": [\n    {\n      \"position\": 1,\n      \"description\": \"Consulting Services\",\n      \"quantity\": 10,\n      \"unit\": \"HUR\",\n      \"unitPrice\": 150.00,\n      \"netAmount\": 1500.00,\n      \"taxRate\": 19,\n      \"taxAmount\": 285.00,\n      \"grossAmount\": 1785.00\n    }\n  ],\n  \"taxSummary\": [\n    {\n      \"taxRate\": 19,\n      \"netAmount\": 1500.00,\n      \"taxAmount\": 285.00\n    }\n  ],\n  \"subtotal\": 1500.00,\n  \"total\": 1785.00,\n  \"paymentTerms\": {\n    \"dueDays\": 30\n  }\n}"
       },
       "name": "invoice-api.xhub",
       "type": "n8n-nodes-invoice-api-xhub.invoiceXhub",

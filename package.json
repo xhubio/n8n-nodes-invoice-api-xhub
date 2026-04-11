@@ -1,20 +1,31 @@
 {
   "name": "n8n-nodes-invoice-api-xhub",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "n8n community nodes for invoice-api.xhub E-Invoice API - Generate, parse, and validate e-invoices across 14 European countries with 18+ formats",
   "keywords": [
     "n8n-community-node-package",
     "e-invoice",
+    "electronic-invoice",
     "xrechnung",
     "zugferd",
     "factur-x",
     "fatturapa",
     "peppol",
     "ubl",
+    "en16931",
     "invoice",
+    "automation",
+    "workflow",
+    "compliance",
     "germany",
     "austria",
     "switzerland",
+    "france",
+    "italy",
+    "spain",
+    "netherlands",
+    "belgium",
+    "poland",
     "europe"
   ],
   "license": "MIT",
@@ -49,7 +60,10 @@
     "lint": "eslint nodes credentials shared --ext .ts",
     "lint:fix": "eslint nodes credentials shared --ext .ts --fix",
     "prepublishOnly": "pnpm build && pnpm lint",
-    "test": "jest"
+    "test": "jest",
+    "release": "./scripts/release.sh",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major"
   },
   "files": [
     "dist"

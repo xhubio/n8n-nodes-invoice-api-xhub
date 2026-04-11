@@ -1,12 +1,15 @@
 import type {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodeListSearchResult,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import * as actions from './actions';
+import { listSearch } from './methods/loadOptions';
 
 export class InvoiceXhub implements INodeType {
 	description: INodeTypeDescription = {
@@ -80,6 +83,23 @@ export class InvoiceXhub implements INodeType {
 			// Get Formats operation properties
 			...actions.formats.description,
 		],
+	};
+
+	methods = {
+		listSearch: {
+			async searchCountries(
+				this: ILoadOptionsFunctions,
+				filter?: string,
+			): Promise<INodeListSearchResult> {
+				return listSearch.searchCountries.call(this, filter);
+			},
+			async searchFormats(
+				this: ILoadOptionsFunctions,
+				filter?: string,
+			): Promise<INodeListSearchResult> {
+				return listSearch.searchFormats.call(this, filter);
+			},
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

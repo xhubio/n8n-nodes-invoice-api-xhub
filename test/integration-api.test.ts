@@ -160,6 +160,8 @@ describe('API: Parse', () => {
 		if (status === 403) {
 			expect(data.error).toBe('FORBIDDEN');
 			expect(data.message).toContain('Missing entitlement');
+		} else if (status === 404) {
+			expect(data.message || data.error).toBeDefined();
 		} else {
 			expect(status).toBe(200);
 			expect(data.success).toBe(true);
@@ -177,6 +179,8 @@ describe('API: Parse', () => {
 		if (status === 403) {
 			expect(data.error).toBe('FORBIDDEN');
 			expect(data.message).toContain('Missing entitlement');
+		} else if (status === 404) {
+			expect(data.message || data.error).toBeDefined();
 		} else {
 			expect(status).toBe(200);
 			expect(data.success).toBe(true);

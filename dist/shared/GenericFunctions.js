@@ -71,12 +71,15 @@ async function invoiceXhubApiRequest(method, endpoint, body = {}, qs = {}) {
 /**
  * Generate an invoice document
  */
-async function generateInvoice(countryCode, format, invoice, formatOptions) {
+async function generateInvoice(countryCode, format, invoice, formatOptions, templateId) {
     const body = {
         invoice,
     };
     if (formatOptions && Object.keys(formatOptions).length > 0) {
         body.formatOptions = formatOptions;
+    }
+    if (templateId) {
+        body.templateId = templateId;
     }
     return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toUpperCase()}/${format.toLowerCase()}/generate`, body);
 }

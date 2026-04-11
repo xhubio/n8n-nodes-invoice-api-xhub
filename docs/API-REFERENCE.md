@@ -78,61 +78,101 @@ POST /api/v1/invoice/{countryCode}/{format}/generate
 ```json
 {
   "invoice": {
+    "type": "string (required: invoice, credit_note, proforma, correction)",
     "invoiceNumber": "string (required)",
-    "invoiceDate": "string (YYYY-MM-DD, required)",
-    "dueDate": "string (YYYY-MM-DD, optional)",
+    "issueDate": "string (YYYY-MM-DD, required)",
+    "dueDate": "string (YYYY-MM-DD, required)",
+    "currency": "string (ISO 4217, required)",
     "seller": {
       "name": "string (required)",
-      "address": {
-        "street": "string (required)",
-        "city": "string (required)",
-        "postalCode": "string (required)",
-        "country": "string (ISO 3166-1, required)"
-      },
-      "vatId": "string (required)",
+      "tradingName": "string (optional)",
+      "street": "string (required)",
+      "additionalStreet": "string (optional)",
+      "city": "string (required)",
+      "postalCode": "string (required)",
+      "countryCode": "string (ISO 3166-1 alpha-2, required)",
+      "state": "string (ISO 3166-2, optional)",
+      "vatId": "string (optional)",
+      "taxId": "string (optional)",
       "email": "string (optional)",
       "phone": "string (optional)",
+      "website": "string (optional)",
       "bankAccount": {
-        "iban": "string (optional)",
+        "iban": "string (required)",
         "bic": "string (optional)",
-        "bankName": "string (optional)"
+        "bankName": "string (optional)",
+        "accountHolder": "string (optional)"
       }
     },
     "buyer": {
       "name": "string (required)",
-      "address": {
-        "street": "string (required)",
-        "city": "string (required)",
-        "postalCode": "string (required)",
-        "country": "string (ISO 3166-1, required)"
-      },
+      "street": "string (required)",
+      "city": "string (required)",
+      "postalCode": "string (required)",
+      "countryCode": "string (required)",
       "vatId": "string (optional)",
       "email": "string (optional)"
     },
-    "lineItems": [
+    "items": [
       {
-        "position": "number (optional)",
+        "position": "number (required, integer > 0)",
         "description": "string (required)",
-        "quantity": "number (required)",
+        "quantity": "number (required, > 0)",
         "unit": "string (UN/ECE Rec. 20, required)",
         "unitPrice": "number (required)",
-        "vatRate": "number (required, percentage)",
-        "vatAmount": "number (optional, calculated)",
-        "lineTotal": "number (optional, calculated)"
+        "netAmount": "number (required)",
+        "taxRate": "number (required, 0-100)",
+        "taxCategoryCode": "string (optional, EN 16931)",
+        "taxAmount": "number (required)",
+        "grossAmount": "number (required)",
+        "articleNumber": "string (optional)"
       }
     ],
-    "currency": "string (ISO 4217, required)",
-    "subtotal": "number (optional, calculated)",
-    "totalVat": "number (optional, calculated)",
+    "taxSummary": [
+      {
+        "taxRate": "number (required)",
+        "taxCategoryCode": "string (optional)",
+        "netAmount": "number (required)",
+        "taxAmount": "number (required)"
+      }
+    ],
+    "subtotal": "number (required)",
     "total": "number (required)",
-    "paymentTerms": "string (optional)",
-    "notes": "string (optional)",
-    "buyerReference": "string (optional, Leitweg-ID for B2G)"
+    "paymentTerms": {
+      "dueDays": "number (required)",
+      "description": "string (optional)",
+      "earlyPaymentDiscount": {
+        "days": "number (required)",
+        "discountPercent": "number (required)"
+      }
+    },
+    "deliveryDate": "string (YYYY-MM-DD, optional)",
+    "servicePeriod": {
+      "start": "string (YYYY-MM-DD, required)",
+      "end": "string (YYYY-MM-DD, required)"
+    },
+    "paymentMethods": [
+      {
+        "type": "string (required: bank_transfer, direct_debit, credit_card, paypal, cash, other)",
+        "details": "string (optional)"
+      }
+    ],
+    "orderNumber": "string (optional)",
+    "customerNumber": "string (optional)",
+    "contractNumber": "string (optional)",
+    "countrySpecific": {
+      "countryCode": "string (required, discriminator)",
+      "leitwegId": "string (optional, DE — B2G routing ID)",
+      "buyerReference": "string (optional, DE — BT-10)",
+      "paymentMeansCode": "string (optional, DE — UNTDID 4461)",
+      "isKleinunternehmer": "boolean (optional, DE — §19 UStG)"
+    },
+    "notes": "string (optional)"
   },
+  "templateId": "string (optional, UUID — reference saved PDF template)",
   "formatOptions": {
-    "profile": "string (optional: basic, comfort, extended)",
-    "pdfVersion": "string (optional: PDF/A-3b)",
-    "embedXml": "boolean (optional, default: true for ZUGFeRD)"
+    "zugferdProfile": "string (optional, e.g. EN16931)",
+    "template": "object (optional, inline BlockTemplate for PDF layout)"
   }
 }
 ```
@@ -208,45 +248,52 @@ POST /api/v1/invoice/{countryCode}/{format}/parse
   "format": "xrechnung",
   "hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "invoice": {
+    "type": "invoice",
     "invoiceNumber": "INV-2025-001",
-    "invoiceDate": "2025-01-15",
+    "issueDate": "2025-01-15",
     "dueDate": "2025-02-14",
+    "currency": "EUR",
     "seller": {
       "name": "ACME GmbH",
-      "address": {
-        "street": "Hauptstraße 1",
-        "city": "Berlin",
-        "postalCode": "10115",
-        "country": "DE"
-      },
+      "street": "Hauptstraße 1",
+      "city": "Berlin",
+      "postalCode": "10115",
+      "countryCode": "DE",
       "vatId": "DE123456789"
     },
     "buyer": {
       "name": "Customer AG",
-      "address": {
-        "street": "Nebenstraße 2",
-        "city": "München",
-        "postalCode": "80331",
-        "country": "DE"
-      },
+      "street": "Nebenstraße 2",
+      "city": "München",
+      "postalCode": "80331",
+      "countryCode": "DE",
       "vatId": "DE987654321"
     },
-    "lineItems": [
+    "items": [
       {
         "position": 1,
         "description": "Consulting Services",
         "quantity": 10,
         "unit": "HUR",
         "unitPrice": 150.00,
-        "vatRate": 19,
-        "vatAmount": 285.00,
-        "lineTotal": 1500.00
+        "netAmount": 1500.00,
+        "taxRate": 19,
+        "taxAmount": 285.00,
+        "grossAmount": 1785.00
       }
     ],
-    "currency": "EUR",
+    "taxSummary": [
+      {
+        "taxRate": 19,
+        "netAmount": 1500.00,
+        "taxAmount": 285.00
+      }
+    ],
     "subtotal": 1500.00,
-    "totalVat": 285.00,
-    "total": 1785.00
+    "total": 1785.00,
+    "paymentTerms": {
+      "dueDays": 30
+    }
   },
   "warnings": []
 }
@@ -330,13 +377,18 @@ POST /api/v1/invoice/{countryCode}/validate
 ```json
 {
   "invoice": {
+    "type": "invoice",
     "invoiceNumber": "INV-2025-001",
-    "invoiceDate": "2025-01-15",
+    "issueDate": "2025-01-15",
+    "dueDate": "2025-02-14",
+    "currency": "EUR",
     "seller": { ... },
     "buyer": { ... },
-    "lineItems": [ ... ],
-    "currency": "EUR",
-    "total": 7497.00
+    "items": [ ... ],
+    "taxSummary": [ ... ],
+    "subtotal": 6300.00,
+    "total": 7497.00,
+    "paymentTerms": { "dueDays": 30 }
   }
 }
 ```
@@ -480,62 +532,105 @@ GET /api/v1/invoice/{countryCode}/formats
 ### Invoice Schema
 
 ```typescript
+type InvoiceType = 'invoice' | 'credit_note' | 'proforma' | 'correction';
+
 interface Invoice {
   // Required fields
+  type: InvoiceType;
   invoiceNumber: string;
-  invoiceDate: string;        // YYYY-MM-DD
+  issueDate: string;          // YYYY-MM-DD
+  dueDate: string;            // YYYY-MM-DD
+  currency: string;           // ISO 4217
   seller: Party;
   buyer: Party;
-  lineItems: LineItem[];
-  currency: string;           // ISO 4217
+  items: Item[];
+  taxSummary: TaxSummaryEntry[];
+  subtotal: number;
   total: number;
+  paymentTerms: PaymentTerms;
 
   // Optional fields
-  dueDate?: string;           // YYYY-MM-DD
-  subtotal?: number;
-  totalVat?: number;
-  paymentTerms?: string;
+  deliveryDate?: string;
+  servicePeriod?: ServicePeriod;
+  paymentMethods?: PaymentMethod[];
+  orderNumber?: string;
+  customerNumber?: string;
+  contractNumber?: string;
+  countrySpecific?: CountrySpecific;
   notes?: string;
-  buyerReference?: string;    // Leitweg-ID for B2G
-  orderReference?: string;
-  contractReference?: string;
 }
 
 interface Party {
   name: string;
-  address: Address;
-  vatId?: string;
-  email?: string;
-  phone?: string;
-  bankAccount?: BankAccount;
-  contactPerson?: string;
-}
-
-interface Address {
+  tradingName?: string;
   street: string;
-  additionalLine?: string;
+  additionalStreet?: string;
   city: string;
   postalCode: string;
-  country: string;            // ISO 3166-1 Alpha-2
+  countryCode: string;        // ISO 3166-1 Alpha-2
+  state?: string;             // ISO 3166-2
+  vatId?: string;
+  taxId?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  bankAccount?: BankAccount;
 }
 
 interface BankAccount {
   iban: string;
-  bic?: string;
+  bic?: string;               // 8-11 chars
   bankName?: string;
+  accountHolder?: string;
 }
 
-interface LineItem {
-  position?: number;
+interface Item {
+  position: number;           // required, integer > 0
   description: string;
   quantity: number;
   unit: string;               // UN/ECE Rec. 20
   unitPrice: number;
-  vatRate: number;            // Percentage
-  vatAmount?: number;
-  lineTotal?: number;
+  netAmount: number;
+  taxRate: number;            // 0-100
+  taxCategoryCode?: string;   // EN 16931
+  taxAmount: number;
+  grossAmount: number;
   articleNumber?: string;
-  discount?: number;
+}
+
+interface TaxSummaryEntry {
+  taxRate: number;
+  taxCategoryCode?: string;
+  netAmount: number;
+  taxAmount: number;
+}
+
+interface PaymentTerms {
+  dueDays: number;
+  description?: string;
+  earlyPaymentDiscount?: {
+    days: number;
+    discountPercent: number;
+  };
+}
+
+interface ServicePeriod {
+  start: string;              // YYYY-MM-DD
+  end: string;
+}
+
+interface PaymentMethod {
+  type: 'bank_transfer' | 'direct_debit' | 'credit_card' | 'paypal' | 'cash' | 'other';
+  details?: string;
+}
+
+// Country-specific (DE example)
+interface CountrySpecificDE {
+  countryCode: 'DE';
+  leitwegId?: string;         // B2G routing ID
+  buyerReference?: string;    // BT-10
+  paymentMeansCode?: string;  // UNTDID 4461, default "58"
+  isKleinunternehmer?: boolean; // §19 UStG exemption
 }
 ```
 
@@ -728,6 +823,16 @@ curl -X POST https://service.invoice-api.xhub.io/api/v1/invoice/DE/xrechnung/gen
 ---
 
 ## Changelog
+
+### v1.1.0 (2026-04)
+- Extended party schema: `tradingName`, `additionalStreet`, `state`, `website`, `bankAccount.accountHolder`
+- `position` now required on items, `taxCategoryCode` now optional
+- `paymentTerms` now required (object with `dueDays`, optional `earlyPaymentDiscount`)
+- `type` field required with lowercase enum: `invoice`, `credit_note`, `proforma`, `correction`
+- New fields: `servicePeriod`, `paymentMethods`, `orderNumber`, `customerNumber`, `contractNumber`
+- Country-specific fields: `countrySpecific` object (DE: `leitwegId`, `buyerReference`, `paymentMeansCode`, `isKleinunternehmer`)
+- `templateId` for referencing saved PDF templates
+- Field renames: `invoiceDate` → `issueDate`, `lineItems` → `items`, `seller.address.*` → `seller.*` (flat), `country` → `countryCode`
 
 ### v1.3.0 (2025-06)
 - Added Parse Auto-Detect endpoint (`POST /api/v1/invoice/parse`)

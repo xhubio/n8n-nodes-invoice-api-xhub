@@ -6,16 +6,14 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { COUNTRY_OPTIONS } from '../../../shared/constants';
-import { validateInvoice } from '../../../shared/GenericFunctions';
+import { validateInvoice, type InvoiceData } from '../../../shared/GenericFunctions';
 
 export const description: INodeProperties[] = [
 	{
 		displayName: 'Country',
 		name: 'countryCode',
-		type: 'options',
-		options: COUNTRY_OPTIONS,
-		default: 'DE',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: 'DE' },
 		required: true,
 		displayOptions: {
 			show: {
@@ -23,6 +21,33 @@ export const description: INodeProperties[] = [
 			},
 		},
 		description: 'The country rules to validate against',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchCountries',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'Country Code',
+				name: 'id',
+				type: 'string',
+				hint: 'Enter a two-letter ISO country code (e.g. DE, AT, FR)',
+				placeholder: 'DE',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex: '^[A-Z]{2}$',
+							errorMessage: 'Country code must be two uppercase letters (e.g. DE)',
+						},
+					},
+				],
+			},
+		],
 	},
 	{
 		displayName: 'Invoice Data',
@@ -30,6 +55,9 @@ export const description: INodeProperties[] = [
 		type: 'json',
 		default: '',
 		required: true,
+		typeOptions: {
+			rows: 10,
+		},
 		displayOptions: {
 			show: {
 				operation: ['validate'],
@@ -75,22 +103,24 @@ export async function execute(
 
 	for (let i = 0; i < items.length; i++) {
 		try {
-			const countryCode = this.getNodeParameter('countryCode', i) as string;
+			const countryCode = this.getNodeParameter('countryCode', i, '', {
+				extractValue: true,
+			}) as string;
 			const invoiceDataRaw = this.getNodeParameter('invoiceData', i) as string | IDataObject;
 			const options = this.getNodeParameter('options', i, {}) as IDataObject;
 
 			// Parse invoice data if it's a string
-			let invoiceData: IDataObject;
+			let invoiceData: InvoiceData;
 			if (typeof invoiceDataRaw === 'string') {
 				try {
-					invoiceData = JSON.parse(invoiceDataRaw) as IDataObject;
+					invoiceData = JSON.parse(invoiceDataRaw) as InvoiceData;
 				} catch {
 					throw new NodeOperationError(this.getNode(), 'Invoice data must be valid JSON', {
 						itemIndex: i,
 					});
 				}
 			} else {
-				invoiceData = invoiceDataRaw;
+				invoiceData = invoiceDataRaw as unknown as InvoiceData;
 			}
 
 			// Call the API

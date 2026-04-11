@@ -6,16 +6,14 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { COUNTRY_OPTIONS, FORMAT_OPTIONS } from '../../../shared/constants';
 import { parseInvoice, binaryToBase64, buildErrorMessage } from '../../../shared/GenericFunctions';
 
 export const description: INodeProperties[] = [
 	{
 		displayName: 'Country',
 		name: 'countryCode',
-		type: 'options',
-		options: COUNTRY_OPTIONS,
-		default: 'DE',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: 'DE' },
 		required: true,
 		displayOptions: {
 			show: {
@@ -23,13 +21,39 @@ export const description: INodeProperties[] = [
 			},
 		},
 		description: 'The country of the invoice to parse',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchCountries',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'Country Code',
+				name: 'id',
+				type: 'string',
+				hint: 'Enter a two-letter ISO country code (e.g. DE, AT, FR)',
+				placeholder: 'DE',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex: '^[A-Z]{2}$',
+							errorMessage: 'Country code must be two uppercase letters (e.g. DE)',
+						},
+					},
+				],
+			},
+		],
 	},
 	{
 		displayName: 'Expected Format',
 		name: 'format',
-		type: 'options',
-		options: FORMAT_OPTIONS,
-		default: 'xrechnung',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: 'xrechnung' },
 		required: true,
 		displayOptions: {
 			show: {
@@ -37,6 +61,24 @@ export const description: INodeProperties[] = [
 			},
 		},
 		description: 'The expected format of the invoice document',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchFormats',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'Format ID',
+				name: 'id',
+				type: 'string',
+				hint: 'Enter a format identifier (e.g. xrechnung, zugferd, facturx)',
+				placeholder: 'xrechnung',
+			},
+		],
 	},
 	{
 		displayName: 'Input Type',
@@ -128,8 +170,10 @@ export async function execute(
 
 	for (let i = 0; i < items.length; i++) {
 		try {
-			const countryCode = this.getNodeParameter('countryCode', i) as string;
-			const format = this.getNodeParameter('format', i) as string;
+			const countryCode = this.getNodeParameter('countryCode', i, '', {
+				extractValue: true,
+			}) as string;
+			const format = this.getNodeParameter('format', i, '', { extractValue: true }) as string;
 			const inputType = this.getNodeParameter('inputType', i) as string;
 			const options = this.getNodeParameter('options', i, {}) as IDataObject;
 

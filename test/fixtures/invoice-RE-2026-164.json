@@ -11,7 +11,11 @@
 		"postalCode": "80331",
 		"city": "München",
 		"countryCode": "DE",
-		"email": "buchhaltung@techsoft.de"
+		"email": "buchhaltung@techsoft.de",
+		"bankAccount": {
+			"iban": "DE89370400440532013000",
+			"bic": "COBADEFFXXX"
+		}
 	},
 	"buyer": {
 		"name": "Digital Services AG234",
@@ -47,6 +51,7 @@
 		"description": "Zahlbar innerhalb von 30 Tagen"
 	},
 	"countrySpecific": {
-		"countryCode": "DE"
+		"countryCode": "DE",
+		"buyerReference": "BUYER-REF-2026-164"
 	}
 }

@@ -15,6 +15,145 @@ import { NodeApiError } from 'n8n-workflow';
 const API_PREFIX = '/api/v1/invoice';
 
 /**
+ * Bank account details (v1.1.0)
+ */
+export interface BankAccount {
+	iban: string;
+	bic?: string;
+	bankName?: string;
+	accountHolder?: string;
+}
+
+/**
+ * Invoice party (seller/buyer) — flat address fields per OpenAPI v1.1.0
+ */
+export interface InvoiceParty {
+	name: string;
+	tradingName?: string;
+	street: string;
+	additionalStreet?: string;
+	city: string;
+	postalCode: string;
+	countryCode: string;
+	state?: string;
+	vatId?: string;
+	taxId?: string;
+	email?: string;
+	phone?: string;
+	website?: string;
+	bankAccount?: BankAccount;
+}
+
+/**
+ * Invoice line item
+ */
+export interface InvoiceItem {
+	position: number;
+	description: string;
+	quantity: number;
+	unit: string;
+	unitPrice: number;
+	netAmount: number;
+	taxRate: number;
+	taxCategoryCode?: string;
+	taxAmount: number;
+	grossAmount: number;
+	articleNumber?: string;
+}
+
+/**
+ * Tax summary entry
+ */
+export interface TaxSummaryEntry {
+	taxRate: number;
+	taxCategoryCode?: string;
+	netAmount: number;
+	taxAmount: number;
+}
+
+/**
+ * Early payment discount
+ */
+export interface EarlyPaymentDiscount {
+	days: number;
+	discountPercent: number;
+}
+
+/**
+ * Payment terms
+ */
+export interface PaymentTerms {
+	dueDays: number;
+	description?: string;
+	earlyPaymentDiscount?: EarlyPaymentDiscount;
+}
+
+/**
+ * Service period
+ */
+export interface ServicePeriod {
+	start: string;
+	end: string;
+}
+
+/**
+ * Payment method
+ */
+export interface PaymentMethod {
+	type: 'bank_transfer' | 'direct_debit' | 'credit_card' | 'paypal' | 'cash' | 'other';
+	details?: string;
+}
+
+/**
+ * Country-specific fields for Germany
+ */
+export interface CountrySpecificDE {
+	countryCode: 'DE';
+	leitwegId?: string;
+	buyerReference?: string;
+	paymentMeansCode?: string;
+	isKleinunternehmer?: boolean;
+}
+
+export type CountrySpecific = CountrySpecificDE | IDataObject;
+
+export type InvoiceType = 'invoice' | 'credit_note' | 'proforma' | 'correction';
+
+/**
+ * Invoice data matching OpenAPI v1.1.0 spec
+ */
+export interface InvoiceData {
+	type: InvoiceType;
+	invoiceNumber: string;
+	issueDate: string;
+	dueDate: string;
+	currency: string;
+	seller: InvoiceParty;
+	buyer: InvoiceParty;
+	items: InvoiceItem[];
+	taxSummary: TaxSummaryEntry[];
+	subtotal: number;
+	total: number;
+	paymentTerms: PaymentTerms;
+	deliveryDate?: string;
+	servicePeriod?: ServicePeriod;
+	paymentMethods?: PaymentMethod[];
+	orderNumber?: string;
+	customerNumber?: string;
+	contractNumber?: string;
+	countrySpecific?: CountrySpecific;
+	notes?: string;
+}
+
+/**
+ * Format options for invoice generation
+ */
+export interface FormatOptions {
+	zugferdProfile?: string;
+	template?: IDataObject;
+}
+
+/**
  * Auto-detect detection result
  */
 export interface DetectionResult {
@@ -145,8 +284,9 @@ export async function generateInvoice(
 	this: IExecuteFunctions,
 	countryCode: string,
 	format: string,
-	invoice: IDataObject,
-	formatOptions?: IDataObject,
+	invoice: InvoiceData,
+	formatOptions?: FormatOptions,
+	templateId?: string,
 ): Promise<InvoiceXhubApiResponse> {
 	const body: IDataObject = {
 		invoice,
@@ -154,6 +294,10 @@ export async function generateInvoice(
 
 	if (formatOptions && Object.keys(formatOptions).length > 0) {
 		body.formatOptions = formatOptions;
+	}
+
+	if (templateId) {
+		body.templateId = templateId;
 	}
 
 	return invoiceXhubApiRequest.call(
@@ -215,7 +359,7 @@ export async function parseInvoiceAutoDetect(
 export async function validateInvoice(
 	this: IExecuteFunctions,
 	countryCode: string,
-	invoice: IDataObject,
+	invoice: InvoiceData,
 ): Promise<InvoiceXhubApiResponse> {
 	return invoiceXhubApiRequest.call(
 		this,

@@ -6,20 +6,20 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { COUNTRY_OPTIONS, FORMAT_OPTIONS } from '../../../shared/constants';
 import {
 	generateInvoice,
 	base64ToBinary,
 	buildErrorMessage,
+	type InvoiceData,
+	type FormatOptions,
 } from '../../../shared/GenericFunctions';
 
 export const description: INodeProperties[] = [
 	{
 		displayName: 'Country',
 		name: 'countryCode',
-		type: 'options',
-		options: COUNTRY_OPTIONS,
-		default: 'DE',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: 'DE' },
 		required: true,
 		displayOptions: {
 			show: {
@@ -27,13 +27,39 @@ export const description: INodeProperties[] = [
 			},
 		},
 		description: 'The country for which to generate the invoice',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchCountries',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'Country Code',
+				name: 'id',
+				type: 'string',
+				hint: 'Enter a two-letter ISO country code (e.g. DE, AT, FR)',
+				placeholder: 'DE',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex: '^[A-Z]{2}$',
+							errorMessage: 'Country code must be two uppercase letters (e.g. DE)',
+						},
+					},
+				],
+			},
+		],
 	},
 	{
 		displayName: 'Output Format',
 		name: 'format',
-		type: 'options',
-		options: FORMAT_OPTIONS,
-		default: 'xrechnung',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: 'xrechnung' },
 		required: true,
 		displayOptions: {
 			show: {
@@ -41,6 +67,24 @@ export const description: INodeProperties[] = [
 			},
 		},
 		description: 'The output format for the generated invoice',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchFormats',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'Format ID',
+				name: 'id',
+				type: 'string',
+				hint: 'Enter a format identifier (e.g. xrechnung, zugferd, facturx)',
+				placeholder: 'xrechnung',
+			},
+		],
 	},
 	{
 		displayName: 'Invoice Data',
@@ -48,6 +92,9 @@ export const description: INodeProperties[] = [
 		type: 'json',
 		default: '',
 		required: true,
+		typeOptions: {
+			rows: 10,
+		},
 		displayOptions: {
 			show: {
 				operation: ['generate'],
@@ -112,38 +159,40 @@ export async function execute(
 
 	for (let i = 0; i < items.length; i++) {
 		try {
-			const countryCode = this.getNodeParameter('countryCode', i) as string;
-			const format = this.getNodeParameter('format', i) as string;
+			const countryCode = this.getNodeParameter('countryCode', i, '', {
+				extractValue: true,
+			}) as string;
+			const format = this.getNodeParameter('format', i, '', { extractValue: true }) as string;
 			const invoiceDataRaw = this.getNodeParameter('invoiceData', i) as string | IDataObject;
 			const options = this.getNodeParameter('options', i, {}) as IDataObject;
 
 			// Parse invoice data if it's a string
-			let invoiceData: IDataObject;
+			let invoiceData: InvoiceData;
 			if (typeof invoiceDataRaw === 'string') {
 				try {
-					invoiceData = JSON.parse(invoiceDataRaw) as IDataObject;
+					invoiceData = JSON.parse(invoiceDataRaw) as InvoiceData;
 				} catch {
 					throw new NodeOperationError(this.getNode(), 'Invoice data must be valid JSON', {
 						itemIndex: i,
 					});
 				}
 			} else {
-				invoiceData = invoiceDataRaw;
+				invoiceData = invoiceDataRaw as unknown as InvoiceData;
 			}
 
 			// Parse format options if provided
-			let formatOptions: IDataObject | undefined;
+			let formatOptions: FormatOptions | undefined;
 			if (options.formatOptions) {
 				if (typeof options.formatOptions === 'string') {
 					try {
-						formatOptions = JSON.parse(options.formatOptions) as IDataObject;
+						formatOptions = JSON.parse(options.formatOptions) as FormatOptions;
 					} catch {
 						throw new NodeOperationError(this.getNode(), 'Format options must be valid JSON', {
 							itemIndex: i,
 						});
 					}
 				} else {
-					formatOptions = options.formatOptions as IDataObject;
+					formatOptions = options.formatOptions as FormatOptions;
 				}
 			}
 

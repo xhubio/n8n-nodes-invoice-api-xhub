@@ -3,15 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.description = void 0;
 exports.execute = execute;
 const n8n_workflow_1 = require("n8n-workflow");
-const constants_1 = require("../../../shared/constants");
 const GenericFunctions_1 = require("../../../shared/GenericFunctions");
 exports.description = [
     {
         displayName: 'Country',
         name: 'countryCode',
-        type: 'options',
-        options: constants_1.COUNTRY_OPTIONS,
-        default: 'DE',
+        type: 'resourceLocator',
+        default: { mode: 'list', value: 'DE' },
         required: true,
         displayOptions: {
             show: {
@@ -19,6 +17,33 @@ exports.description = [
             },
         },
         description: 'The country rules to validate against',
+        modes: [
+            {
+                displayName: 'From List',
+                name: 'list',
+                type: 'list',
+                typeOptions: {
+                    searchListMethod: 'searchCountries',
+                    searchable: true,
+                },
+            },
+            {
+                displayName: 'Country Code',
+                name: 'id',
+                type: 'string',
+                hint: 'Enter a two-letter ISO country code (e.g. DE, AT, FR)',
+                placeholder: 'DE',
+                validation: [
+                    {
+                        type: 'regex',
+                        properties: {
+                            regex: '^[A-Z]{2}$',
+                            errorMessage: 'Country code must be two uppercase letters (e.g. DE)',
+                        },
+                    },
+                ],
+            },
+        ],
     },
     {
         displayName: 'Invoice Data',
@@ -26,6 +51,9 @@ exports.description = [
         type: 'json',
         default: '',
         required: true,
+        typeOptions: {
+            rows: 10,
+        },
         displayOptions: {
             show: {
                 operation: ['validate'],
@@ -66,7 +94,9 @@ async function execute(items) {
     const returnData = [];
     for (let i = 0; i < items.length; i++) {
         try {
-            const countryCode = this.getNodeParameter('countryCode', i);
+            const countryCode = this.getNodeParameter('countryCode', i, '', {
+                extractValue: true,
+            });
             const invoiceDataRaw = this.getNodeParameter('invoiceData', i);
             const options = this.getNodeParameter('options', i, {});
             // Parse invoice data if it's a string
