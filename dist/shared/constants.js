@@ -2,7 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FORMAT_EXTENSIONS = exports.FORMAT_MIME_TYPES = exports.COUNTRY_FORMATS = exports.FORMAT_OPTIONS = exports.E_INVOICE_FORMATS = exports.COUNTRY_OPTIONS = exports.SUPPORTED_COUNTRIES = void 0;
 /**
- * Supported country codes for invoice-api.xhub API
+ * Supported country codes for invoice-api.xhub API.
+ *
+ * Displayed in UI in uppercase (ISO 3166-1 alpha-2). The API expects
+ * lowercase in URL paths — that lowercasing happens at the HTTP boundary
+ * (see GenericFunctions.ts).
  */
 exports.SUPPORTED_COUNTRIES = [
     'DE', // Germany
@@ -40,74 +44,65 @@ exports.COUNTRY_OPTIONS = [
     { name: 'Bulgaria (BG)', value: 'BG' },
 ];
 /**
- * E-Invoice format identifiers
+ * E-Invoice format identifiers matching the OpenAPI v1.1 `format` path enum.
  */
 exports.E_INVOICE_FORMATS = [
-    'xrechnung', // DE - XRechnung
-    'zugferd', // DE - ZUGFeRD
+    'pdf', // All countries (universal PDF)
+    'zugferd', // DE - ZUGFeRD (PDF + embedded XML)
+    'xrechnung', // DE - XRechnung (XML)
     'ebinterface', // AT - ebInterface
-    'qr-rechnung', // CH - QR-Rechnung
-    'ubl-be', // BE - UBL Belgium
-    'ubl-nl', // NL - UBL Netherlands
     'facturx', // FR - Factur-X
     'fatturapa', // IT - FatturaPA
     'facturae', // ES - Facturae
+    'ubl', // Generic UBL (BE, NL, RO, and fallback)
     'isdoc', // CZ - ISDOC
     'nav', // HU - NAV
     'ksef', // PL - KSeF
-    'saf-t', // PT - SAF-T
     'efactura', // RO - e-Factura
-    'ubl-bg', // BG - UBL Bulgaria
-    'pdf', // PDF only
-    'ubl', // Generic UBL
-    'cii', // Cross Industry Invoice
+    'saft', // PT - SAF-T
 ];
 /**
  * Format options for n8n dropdowns (grouped by region)
  */
 exports.FORMAT_OPTIONS = [
-    // DACH Region
+    // Universal
+    { name: 'PDF', value: 'pdf' },
+    // DACH
     { name: 'XRechnung (DE)', value: 'xrechnung' },
     { name: 'ZUGFeRD (DE)', value: 'zugferd' },
     { name: 'ebInterface (AT)', value: 'ebinterface' },
-    { name: 'QR-Rechnung (CH)', value: 'qr-rechnung' },
     // EU West
     { name: 'Factur-X (FR)', value: 'facturx' },
-    { name: 'UBL Belgium (BE)', value: 'ubl-be' },
-    { name: 'UBL Netherlands (NL)', value: 'ubl-nl' },
     // EU South
     { name: 'FatturaPA (IT)', value: 'fatturapa' },
     { name: 'Facturae (ES)', value: 'facturae' },
-    { name: 'SAF-T (PT)', value: 'saf-t' },
+    { name: 'SAF-T (PT)', value: 'saft' },
     // EU East
     { name: 'KSeF (PL)', value: 'ksef' },
     { name: 'ISDOC (CZ)', value: 'isdoc' },
     { name: 'NAV (HU)', value: 'nav' },
     { name: 'E-Factura (RO)', value: 'efactura' },
-    { name: 'UBL Bulgaria (BG)', value: 'ubl-bg' },
     // Generic
-    { name: 'PDF', value: 'pdf' },
     { name: 'UBL (Generic)', value: 'ubl' },
-    { name: 'CII (Cross Industry Invoice)', value: 'cii' },
 ];
 /**
  * Country-specific format mappings (local superset — authoritative list comes from the /formats endpoint)
  */
 exports.COUNTRY_FORMATS = {
-    DE: ['xrechnung', 'zugferd', 'pdf', 'ubl', 'cii'],
+    DE: ['xrechnung', 'zugferd', 'pdf', 'ubl'],
     AT: ['ebinterface', 'zugferd', 'pdf', 'ubl'],
-    CH: ['qr-rechnung', 'zugferd', 'pdf', 'ubl'],
-    BE: ['ubl-be', 'pdf', 'ubl'],
-    NL: ['ubl-nl', 'pdf', 'ubl'],
-    FR: ['facturx', 'pdf', 'ubl', 'cii'],
+    CH: ['zugferd', 'pdf', 'ubl'],
+    BE: ['ubl', 'pdf'],
+    NL: ['ubl', 'pdf'],
+    FR: ['facturx', 'pdf', 'ubl'],
     IT: ['fatturapa', 'pdf'],
     ES: ['facturae', 'pdf'],
-    PT: ['saf-t', 'pdf', 'ubl'],
+    PT: ['saft', 'pdf', 'ubl'],
     PL: ['ksef', 'pdf', 'ubl'],
     CZ: ['isdoc', 'pdf', 'ubl'],
     HU: ['nav', 'pdf', 'ubl'],
     RO: ['efactura', 'pdf', 'ubl'],
-    BG: ['ubl-bg', 'pdf', 'ubl'],
+    BG: ['ubl', 'pdf'],
 };
 /**
  * MIME types for output formats
@@ -121,16 +116,11 @@ exports.FORMAT_MIME_TYPES = {
     fatturapa: 'application/xml',
     facturae: 'application/xml',
     ubl: 'application/xml',
-    cii: 'application/xml',
-    'ubl-be': 'application/xml',
-    'ubl-nl': 'application/xml',
-    'ubl-bg': 'application/xml',
     ksef: 'application/xml',
     isdoc: 'application/xml',
     nav: 'application/xml',
     efactura: 'application/xml',
-    'qr-rechnung': 'application/pdf',
-    'saf-t': 'application/xml',
+    saft: 'application/xml',
 };
 /**
  * File extensions for output formats
@@ -144,15 +134,10 @@ exports.FORMAT_EXTENSIONS = {
     fatturapa: '.xml',
     facturae: '.xml',
     ubl: '.xml',
-    cii: '.xml',
-    'ubl-be': '.xml',
-    'ubl-nl': '.xml',
-    'ubl-bg': '.xml',
     ksef: '.xml',
     isdoc: '.xml',
     nav: '.xml',
     efactura: '.xml',
-    'qr-rechnung': '.pdf',
-    'saf-t': '.xml',
+    saft: '.xml',
 };
 //# sourceMappingURL=constants.js.map

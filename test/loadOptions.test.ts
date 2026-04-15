@@ -3,38 +3,60 @@ import type { ILoadOptionsFunctions } from 'n8n-workflow';
 import { listSearch } from '../nodes/InvoiceXhub/methods/loadOptions';
 import { COUNTRY_OPTIONS, FORMAT_OPTIONS } from '../shared/constants';
 
-// listSearch methods only filter local constants — no API calls, no context needed
+jest.mock('../shared/GenericFunctions', () => {
+	const actual = jest.requireActual('../shared/GenericFunctions');
+	return {
+		...actual,
+		getAllFormats: jest.fn(),
+	};
+});
+
+import { getAllFormats } from '../shared/GenericFunctions';
+const mockGetAllFormats = getAllFormats as jest.MockedFunction<typeof getAllFormats>;
+
 const mockCtx = {} as ILoadOptionsFunctions;
 
-describe('listSearch', () => {
+const apiFixture = {
+	success: true,
+	countries: [
+		{
+			code: 'de',
+			name: 'Germany',
+			formats: [
+				{ id: 'pdf', name: 'PDF', mimeType: 'application/pdf' },
+				{ id: 'xrechnung', name: 'XRechnung', mimeType: 'application/xml' },
+				{ id: 'zugferd', name: 'ZUGFeRD', mimeType: 'application/pdf' },
+			],
+		},
+		{
+			code: 'at',
+			name: 'Austria',
+			formats: [
+				{ id: 'pdf', name: 'PDF', mimeType: 'application/pdf' },
+				{ id: 'ebinterface', name: 'ebInterface', mimeType: 'application/xml' },
+			],
+		},
+	],
+};
+
+describe('listSearch (API-backed)', () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+		mockGetAllFormats.mockResolvedValue(apiFixture as any);
+	});
+
 	describe('searchCountries', () => {
-		it('returns all countries when filter is undefined', async () => {
+		it('returns countries from API response', async () => {
 			const result = await listSearch.searchCountries.call(mockCtx, undefined);
-			expect(result.results).toHaveLength(COUNTRY_OPTIONS.length);
+			expect(result.results).toHaveLength(2);
+			expect(result.results.map((r) => r.value)).toEqual(['DE', 'AT']);
+			expect(result.results[0].name).toBe('Germany (DE)');
 		});
 
-		it('returns all countries when filter is empty string', async () => {
-			const result = await listSearch.searchCountries.call(mockCtx, '');
-			expect(result.results).toHaveLength(COUNTRY_OPTIONS.length);
-		});
-
-		it('filters case-insensitively (lowercase input)', async () => {
+		it('filters case-insensitively', async () => {
 			const result = await listSearch.searchCountries.call(mockCtx, 'ger');
 			expect(result.results).toHaveLength(1);
 			expect(result.results[0].value).toBe('DE');
-			expect(result.results[0].name).toContain('Germany');
-		});
-
-		it('filters case-insensitively (uppercase input)', async () => {
-			const result = await listSearch.searchCountries.call(mockCtx, 'GER');
-			expect(result.results).toHaveLength(1);
-			expect(result.results[0].value).toBe('DE');
-		});
-
-		it('matches country code in parentheses', async () => {
-			const result = await listSearch.searchCountries.call(mockCtx, '(AT)');
-			expect(result.results).toHaveLength(1);
-			expect(result.results[0].value).toBe('AT');
 		});
 
 		it('returns empty array for non-matching filter', async () => {
@@ -42,67 +64,45 @@ describe('listSearch', () => {
 			expect(result.results).toHaveLength(0);
 		});
 
-		it('each result has name and value string properties', async () => {
+		it('falls back to local constants on API failure', async () => {
+			mockGetAllFormats.mockRejectedValueOnce(new Error('network'));
 			const result = await listSearch.searchCountries.call(mockCtx, undefined);
-			for (const item of result.results) {
-				expect(typeof item.name).toBe('string');
-				expect(typeof item.value).toBe('string');
-				expect(item.name.length).toBeGreaterThan(0);
-				expect(String(item.value).length).toBeGreaterThan(0);
-			}
+			expect(result.results).toHaveLength(COUNTRY_OPTIONS.length);
+		});
+
+		it('falls back when API returns no countries', async () => {
+			mockGetAllFormats.mockResolvedValueOnce({ success: true, countries: [] } as any);
+			const result = await listSearch.searchCountries.call(mockCtx, undefined);
+			expect(result.results).toHaveLength(COUNTRY_OPTIONS.length);
 		});
 	});
 
 	describe('searchFormats', () => {
-		it('returns all formats when filter is undefined', async () => {
+		it('deduplicates formats across countries and tags with country', async () => {
 			const result = await listSearch.searchFormats.call(mockCtx, undefined);
-			expect(result.results).toHaveLength(FORMAT_OPTIONS.length);
+			const values = result.results.map((r) => r.value);
+			// pdf appears for DE and AT — should surface with country tags
+			expect(values.filter((v) => v === 'pdf').length).toBeGreaterThanOrEqual(1);
+			expect(values).toContain('xrechnung');
+			expect(values).toContain('ebinterface');
 		});
 
-		it('returns all formats when filter is empty string', async () => {
-			const result = await listSearch.searchFormats.call(mockCtx, '');
-			expect(result.results).toHaveLength(FORMAT_OPTIONS.length);
-		});
-
-		it('filters by format name (xrechnung)', async () => {
+		it('filters by format name', async () => {
 			const result = await listSearch.searchFormats.call(mockCtx, 'xrechnung');
 			expect(result.results.length).toBeGreaterThan(0);
 			expect(result.results.every((r) => r.name.toLowerCase().includes('xrechnung'))).toBe(true);
 		});
 
-		it('filters all UBL variants by partial match', async () => {
-			const result = await listSearch.searchFormats.call(mockCtx, 'ubl');
-			// Expects: UBL Belgium, UBL Netherlands, UBL Bulgaria, UBL (Generic)
-			expect(result.results.length).toBeGreaterThanOrEqual(4);
-			expect(result.results.every((r) => r.name.toLowerCase().includes('ubl'))).toBe(true);
-		});
-
-		it('filters by country code in parentheses', async () => {
+		it('filters by country tag', async () => {
 			const result = await listSearch.searchFormats.call(mockCtx, '(DE)');
-			// Expects: XRechnung (DE), ZUGFeRD (DE)
-			expect(result.results.length).toBeGreaterThanOrEqual(2);
+			expect(result.results.length).toBeGreaterThan(0);
 			expect(result.results.every((r) => r.name.includes('(DE)'))).toBe(true);
 		});
 
-		it('filters case-insensitively', async () => {
-			const lower = await listSearch.searchFormats.call(mockCtx, 'facturx');
-			const upper = await listSearch.searchFormats.call(mockCtx, 'FACTURX');
-			expect(lower.results).toHaveLength(upper.results.length);
-		});
-
-		it('returns empty array for non-matching filter', async () => {
-			const result = await listSearch.searchFormats.call(mockCtx, 'nonexistent');
-			expect(result.results).toHaveLength(0);
-		});
-
-		it('each result has name and value string properties', async () => {
+		it('falls back to local constants on API failure', async () => {
+			mockGetAllFormats.mockRejectedValueOnce(new Error('network'));
 			const result = await listSearch.searchFormats.call(mockCtx, undefined);
-			for (const item of result.results) {
-				expect(typeof item.name).toBe('string');
-				expect(typeof item.value).toBe('string');
-				expect(item.name.length).toBeGreaterThan(0);
-				expect(String(item.value).length).toBeGreaterThan(0);
-			}
+			expect(result.results).toHaveLength(FORMAT_OPTIONS.length);
 		});
 	});
 });

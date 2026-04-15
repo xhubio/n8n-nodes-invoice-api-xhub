@@ -6,7 +6,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import * as actions from './actions';
 import { listSearch } from './methods/loadOptions';
@@ -24,8 +24,10 @@ export class InvoiceXhub implements INodeType {
 		defaults: {
 			name: 'invoice-api.xhub',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
+		inputs: [NodeConnectionTypes.Main],
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'invoiceXhubApi',

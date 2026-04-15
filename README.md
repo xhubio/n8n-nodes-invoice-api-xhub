@@ -81,9 +81,9 @@ Requires Node.js **≥ 22.0**.
 | EU South | Italy (IT), Spain (ES), Portugal (PT) |
 | EU East | Poland (PL), Czech Republic (CZ), Hungary (HU), Romania (RO), Bulgaria (BG) |
 
-### Supported Formats (18+)
+### Supported Formats
 
-`xrechnung` · `zugferd` · `ebinterface` · `qr-rechnung` · `facturx` · `ubl-be` · `ubl-nl` · `fatturapa` · `facturae` · `saf-t` · `ksef` · `isdoc` · `nav` · `efactura` · `ubl-bg` · `pdf` · `ubl` · `cii`
+`pdf` · `zugferd` · `xrechnung` · `ebinterface` · `facturx` · `fatturapa` · `facturae` · `ubl` · `isdoc` · `nav` · `ksef` · `efactura` · `saft`
 
 For format details and country-specific requirements, see the [API documentation](https://invoice-api.xhub.io/docs).
 
@@ -102,6 +102,7 @@ For format details and country-specific requirements, see the [API documentation
     "currency": "EUR",
     "seller": { "name": "ACME GmbH", "street": "Hauptstraße 1", "city": "Berlin", "postalCode": "10115", "countryCode": "DE", "vatId": "DE123456789" },
     "buyer": { "name": "Customer AG", "street": "Nebenstraße 2", "city": "München", "postalCode": "80331", "countryCode": "DE" },
+    "countrySpecific": { "buyerReference": "BUYER-REF-001" },
     "items": [{ "position": 1, "description": "Consulting", "quantity": 10, "unit": "HUR", "unitPrice": 150.00, "netAmount": 1500.00, "taxRate": 19, "taxAmount": 285.00, "grossAmount": 1785.00 }],
     "taxSummary": [{ "taxRate": 19, "netAmount": 1500.00, "taxAmount": 285.00 }],
     "subtotal": 1500.00,

@@ -12,6 +12,7 @@
 		"city": "Berlin",
 		"countryCode": "DE",
 		"email": "info@muster.de",
+		"phone": "+49 30 12345678",
 		"bankAccount": {
 			"iban": "DE89370400440532013000",
 			"bic": "COBADEFFXXX"
@@ -62,6 +63,12 @@
 		"dueDays": 30,
 		"description": "Zahlbar innerhalb von 30 Tagen"
 	},
+	"paymentMethods": [
+		{
+			"type": "bank_transfer",
+			"details": "SEPA-Überweisung"
+		}
+	],
 	"countrySpecific": {
 		"countryCode": "DE",
 		"leitwegId": "991-12345-67"

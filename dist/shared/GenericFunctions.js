@@ -81,7 +81,7 @@ async function generateInvoice(countryCode, format, invoice, formatOptions, temp
     if (templateId) {
         body.templateId = templateId;
     }
-    return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toUpperCase()}/${format.toLowerCase()}/generate`, body);
+    return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toLowerCase()}/${format.toLowerCase()}/generate`, body);
 }
 /**
  * Parse an invoice document
@@ -93,7 +93,7 @@ async function parseInvoice(countryCode, format, data, filename) {
     if (filename) {
         body.filename = filename;
     }
-    return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toUpperCase()}/${format.toLowerCase()}/parse`, body);
+    return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toLowerCase()}/${format.toLowerCase()}/parse`, body);
 }
 /**
  * Parse an invoice document with auto-detection of country and format
@@ -111,13 +111,13 @@ async function parseInvoiceAutoDetect(data, filename) {
  * Validate an invoice
  */
 async function validateInvoice(countryCode, invoice) {
-    return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toUpperCase()}/validate`, { invoice });
+    return invoiceXhubApiRequest.call(this, 'POST', `${API_PREFIX}/${countryCode.toLowerCase()}/validate`, { invoice });
 }
 /**
  * Get supported formats for a country
  */
 async function getCountryFormats(countryCode) {
-    return invoiceXhubApiRequest.call(this, 'GET', `${API_PREFIX}/${countryCode.toUpperCase()}/formats`);
+    return invoiceXhubApiRequest.call(this, 'GET', `${API_PREFIX}/${countryCode.toLowerCase()}/formats`);
 }
 /**
  * Get all supported countries and formats

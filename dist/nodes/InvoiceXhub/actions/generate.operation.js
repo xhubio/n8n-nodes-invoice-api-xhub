@@ -105,13 +105,6 @@ exports.description = [
         },
         options: [
             {
-                displayName: 'Output Binary',
-                name: 'outputBinary',
-                type: 'boolean',
-                default: true,
-                description: 'Whether to output the generated document as binary data',
-            },
-            {
                 displayName: 'Binary Property',
                 name: 'binaryPropertyName',
                 type: 'string',
@@ -124,6 +117,13 @@ exports.description = [
                 },
             },
             {
+                displayName: 'Format Options',
+                name: 'formatOptions',
+                type: 'json',
+                default: '{}',
+                description: 'Additional format-specific options as JSON. For PDF/ZUGFeRD/Factur-X, this can include an inline `template` (BlockTemplate JSON). Ignored if Template ID is set.',
+            },
+            {
                 displayName: 'Include Warnings',
                 name: 'includeWarnings',
                 type: 'boolean',
@@ -131,11 +131,18 @@ exports.description = [
                 description: 'Whether to include validation warnings in the output',
             },
             {
-                displayName: 'Format Options',
-                name: 'formatOptions',
-                type: 'json',
-                default: '{}',
-                description: 'Additional format-specific options as JSON',
+                displayName: 'Output Binary',
+                name: 'outputBinary',
+                type: 'boolean',
+                default: true,
+                description: 'Whether to output the generated document as binary data',
+            },
+            {
+                displayName: 'Template ID',
+                name: 'templateId',
+                type: 'string',
+                default: '',
+                description: 'ID of a saved PDF template (created via the web UI or pdf.templateCreate). Applies to PDF, ZUGFeRD, and Factur-X. Takes priority over an inline template in Format Options.',
             },
         ],
     },
@@ -182,8 +189,9 @@ async function execute(items) {
                     formatOptions = options.formatOptions;
                 }
             }
+            const templateId = options.templateId || undefined;
             // Call the API
-            const response = await GenericFunctions_1.generateInvoice.call(this, countryCode, format, invoiceData, formatOptions);
+            const response = await GenericFunctions_1.generateInvoice.call(this, countryCode, format, invoiceData, formatOptions, templateId);
             if (!response.success) {
                 throw new n8n_workflow_1.NodeOperationError(this.getNode(), (0, GenericFunctions_1.buildErrorMessage)(response), { itemIndex: i });
             }

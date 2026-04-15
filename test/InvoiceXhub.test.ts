@@ -35,8 +35,24 @@ describe('InvoiceXhub Constants', () => {
 	});
 
 	describe('E_INVOICE_FORMATS', () => {
-		it('should have 18+ formats', () => {
-			expect(E_INVOICE_FORMATS.length).toBeGreaterThanOrEqual(18);
+		it('matches OpenAPI v1.1 format enum', () => {
+			expect(E_INVOICE_FORMATS).toEqual(
+				expect.arrayContaining([
+					'pdf',
+					'zugferd',
+					'xrechnung',
+					'ebinterface',
+					'facturx',
+					'fatturapa',
+					'facturae',
+					'ubl',
+					'isdoc',
+					'nav',
+					'ksef',
+					'efactura',
+					'saft',
+				]),
+			);
 		});
 
 		it('should include German formats', () => {
@@ -47,7 +63,6 @@ describe('InvoiceXhub Constants', () => {
 		it('should include generic formats', () => {
 			expect(E_INVOICE_FORMATS).toContain('pdf');
 			expect(E_INVOICE_FORMATS).toContain('ubl');
-			expect(E_INVOICE_FORMATS).toContain('cii');
 		});
 	});
 

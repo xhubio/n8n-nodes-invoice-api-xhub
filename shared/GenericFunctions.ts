@@ -303,7 +303,7 @@ export async function generateInvoice(
 	return invoiceXhubApiRequest.call(
 		this,
 		'POST',
-		`${API_PREFIX}/${countryCode.toUpperCase()}/${format.toLowerCase()}/generate`,
+		`${API_PREFIX}/${countryCode.toLowerCase()}/${format.toLowerCase()}/generate`,
 		body,
 	);
 }
@@ -329,7 +329,7 @@ export async function parseInvoice(
 	return invoiceXhubApiRequest.call(
 		this,
 		'POST',
-		`${API_PREFIX}/${countryCode.toUpperCase()}/${format.toLowerCase()}/parse`,
+		`${API_PREFIX}/${countryCode.toLowerCase()}/${format.toLowerCase()}/parse`,
 		body,
 	);
 }
@@ -364,7 +364,7 @@ export async function validateInvoice(
 	return invoiceXhubApiRequest.call(
 		this,
 		'POST',
-		`${API_PREFIX}/${countryCode.toUpperCase()}/validate`,
+		`${API_PREFIX}/${countryCode.toLowerCase()}/validate`,
 		{ invoice },
 	);
 }
@@ -379,7 +379,7 @@ export async function getCountryFormats(
 	return invoiceXhubApiRequest.call(
 		this,
 		'GET',
-		`${API_PREFIX}/${countryCode.toUpperCase()}/formats`,
+		`${API_PREFIX}/${countryCode.toLowerCase()}/formats`,
 	);
 }
 

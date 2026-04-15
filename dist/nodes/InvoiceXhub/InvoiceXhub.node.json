@@ -1,0 +1,32 @@
+{
+	"node": "n8n-nodes-base.invoiceXhub",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Finance & Accounting", "Utility"],
+	"alias": [
+		"invoice",
+		"e-invoice",
+		"einvoice",
+		"xrechnung",
+		"zugferd",
+		"factur-x",
+		"facturx",
+		"peppol",
+		"ubl",
+		"cii",
+		"fatturapa",
+		"en16931"
+	],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://invoice-api.xhub.io/docs"
+			}
+		],
+		"credentialDocumentation": [
+			{
+				"url": "https://invoice-api.xhub.io/docs/api/authentication"
+			}
+		]
+	}
+}

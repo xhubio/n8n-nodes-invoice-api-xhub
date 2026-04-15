@@ -115,13 +115,6 @@ export const description: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Output Binary',
-				name: 'outputBinary',
-				type: 'boolean',
-				default: true,
-				description: 'Whether to output the generated document as binary data',
-			},
-			{
 				displayName: 'Binary Property',
 				name: 'binaryPropertyName',
 				type: 'string',
@@ -134,6 +127,14 @@ export const description: INodeProperties[] = [
 				},
 			},
 			{
+				displayName: 'Format Options',
+				name: 'formatOptions',
+				type: 'json',
+				default: '{}',
+				description:
+					'Additional format-specific options as JSON. For PDF/ZUGFeRD/Factur-X, this can include an inline `template` (BlockTemplate JSON). Ignored if Template ID is set.',
+			},
+			{
 				displayName: 'Include Warnings',
 				name: 'includeWarnings',
 				type: 'boolean',
@@ -141,11 +142,19 @@ export const description: INodeProperties[] = [
 				description: 'Whether to include validation warnings in the output',
 			},
 			{
-				displayName: 'Format Options',
-				name: 'formatOptions',
-				type: 'json',
-				default: '{}',
-				description: 'Additional format-specific options as JSON',
+				displayName: 'Output Binary',
+				name: 'outputBinary',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to output the generated document as binary data',
+			},
+			{
+				displayName: 'Template ID',
+				name: 'templateId',
+				type: 'string',
+				default: '',
+				description:
+					'ID of a saved PDF template (created via the web UI or pdf.templateCreate). Applies to PDF, ZUGFeRD, and Factur-X. Takes priority over an inline template in Format Options.',
 			},
 		],
 	},
@@ -196,6 +205,8 @@ export async function execute(
 				}
 			}
 
+			const templateId = (options.templateId as string) || undefined;
+
 			// Call the API
 			const response = await generateInvoice.call(
 				this,
@@ -203,6 +214,7 @@ export async function execute(
 				format,
 				invoiceData,
 				formatOptions,
+				templateId,
 			);
 
 			if (!response.success) {

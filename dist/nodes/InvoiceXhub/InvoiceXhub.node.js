@@ -49,8 +49,10 @@ class InvoiceXhub {
         defaults: {
             name: 'invoice-api.xhub',
         },
-        inputs: ['main'],
-        outputs: ['main'],
+        // eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
+        inputs: [n8n_workflow_1.NodeConnectionTypes.Main],
+        // eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
+        outputs: [n8n_workflow_1.NodeConnectionTypes.Main],
         credentials: [
             {
                 name: 'invoiceXhubApi',

@@ -5,6 +5,7 @@ class InvoiceXhubApi {
     name = 'invoiceXhubApi';
     displayName = 'Invoice-api.xhub API';
     documentationUrl = 'https://invoice-api.xhub.io/docs/api/authentication';
+    icon = 'file:invoiceXhub.svg';
     properties = [
         {
             displayName: 'API Key',

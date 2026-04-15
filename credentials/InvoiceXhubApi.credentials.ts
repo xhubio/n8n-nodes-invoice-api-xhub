@@ -9,6 +9,7 @@ export class InvoiceXhubApi implements ICredentialType {
 	name = 'invoiceXhubApi';
 	displayName = 'Invoice-api.xhub API';
 	documentationUrl = 'https://invoice-api.xhub.io/docs/api/authentication';
+	icon = 'file:invoiceXhub.svg' as const;
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',
