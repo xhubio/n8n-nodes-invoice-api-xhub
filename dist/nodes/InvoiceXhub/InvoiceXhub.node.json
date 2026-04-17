@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-base.invoiceXhub",
+	"node": "n8n-nodes-invoice-api-xhub.invoiceXhub",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Finance & Accounting", "Utility"],

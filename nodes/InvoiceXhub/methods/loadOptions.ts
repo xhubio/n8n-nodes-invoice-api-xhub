@@ -22,6 +22,36 @@ function applyFilter<T extends { name: string }>(items: T[], filter?: string): T
 	return items.filter((o) => o.name.toLowerCase().includes(needle));
 }
 
+/**
+ * Decide whether a caught error should be re-thrown (so the n8n UI shows it
+ * to the user) or silently absorbed (so we fall back to local constants).
+ *
+ * Rule: anything with an HTTP status code came from the server and is
+ * meaningful — auth failures, forbidden, rate limits, server errors — all
+ * must surface. Only errors without an HTTP response (network/DNS/timeout
+ * problems) are treated as "API temporarily unreachable" and trigger the
+ * static fallback.
+ */
+function shouldSurfaceError(err: unknown): boolean {
+	if (!err || typeof err !== 'object') return false;
+	const e = err as {
+		httpCode?: string | number;
+		statusCode?: number;
+		code?: string | number;
+		cause?: { statusCode?: number; httpCode?: string | number };
+		response?: { statusCode?: number };
+	};
+	if (e.httpCode !== undefined && e.httpCode !== null) return true;
+	if (typeof e.statusCode === 'number') return true;
+	if (typeof e.response?.statusCode === 'number') return true;
+	if (e.cause && (e.cause.statusCode !== undefined || e.cause.httpCode !== undefined)) {
+		return true;
+	}
+	// Node.js network-error codes surface as string .code (ENOTFOUND, ECONNRESET, etc.)
+	// Those should NOT surface — they trigger fallback.
+	return false;
+}
+
 export const listSearch = {
 	async searchCountries(
 		this: ILoadOptionsFunctions,
@@ -42,8 +72,9 @@ export const listSearch = {
 				);
 				return { results };
 			}
-		} catch {
-			// fall through to local fallback
+		} catch (error) {
+			if (shouldSurfaceError(error)) throw error;
+			// Pure network/DNS/timeout — fall through to local constants
 		}
 
 		const results = applyFilter(
@@ -81,8 +112,9 @@ export const listSearch = {
 					return { results: applyFilter(merged, filter) };
 				}
 			}
-		} catch {
-			// fall through to local fallback
+		} catch (error) {
+			if (shouldSurfaceError(error)) throw error;
+			// Pure network/DNS/timeout — fall through to local constants
 		}
 
 		const results = applyFilter(

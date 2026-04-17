@@ -64,8 +64,8 @@ describe('listSearch (API-backed)', () => {
 			expect(result.results).toHaveLength(0);
 		});
 
-		it('falls back to local constants on API failure', async () => {
-			mockGetAllFormats.mockRejectedValueOnce(new Error('network'));
+		it('falls back to local constants on pure network failure', async () => {
+			mockGetAllFormats.mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND'));
 			const result = await listSearch.searchCountries.call(mockCtx, undefined);
 			expect(result.results).toHaveLength(COUNTRY_OPTIONS.length);
 		});
@@ -74,6 +74,32 @@ describe('listSearch (API-backed)', () => {
 			mockGetAllFormats.mockResolvedValueOnce({ success: true, countries: [] } as any);
 			const result = await listSearch.searchCountries.call(mockCtx, undefined);
 			expect(result.results).toHaveLength(COUNTRY_OPTIONS.length);
+		});
+
+		it('propagates auth errors (401) to the user', async () => {
+			const authError = Object.assign(new Error('Unauthorized'), { httpCode: '401' });
+			mockGetAllFormats.mockRejectedValueOnce(authError);
+			await expect(listSearch.searchCountries.call(mockCtx, undefined)).rejects.toThrow(
+				'Unauthorized',
+			);
+		});
+
+		it('propagates forbidden errors (403) to the user', async () => {
+			const forbidden = Object.assign(new Error('Forbidden'), { httpCode: '403' });
+			mockGetAllFormats.mockRejectedValueOnce(forbidden);
+			await expect(listSearch.searchCountries.call(mockCtx, undefined)).rejects.toThrow(
+				'Forbidden',
+			);
+		});
+
+		it('propagates server errors (500) to the user', async () => {
+			const serverErr = Object.assign(new Error('Internal'), {
+				cause: { statusCode: 500 },
+			});
+			mockGetAllFormats.mockRejectedValueOnce(serverErr);
+			await expect(listSearch.searchCountries.call(mockCtx, undefined)).rejects.toThrow(
+				'Internal',
+			);
 		});
 	});
 
@@ -99,10 +125,28 @@ describe('listSearch (API-backed)', () => {
 			expect(result.results.every((r) => r.name.includes('(DE)'))).toBe(true);
 		});
 
-		it('falls back to local constants on API failure', async () => {
-			mockGetAllFormats.mockRejectedValueOnce(new Error('network'));
+		it('falls back to local constants on pure network failure', async () => {
+			mockGetAllFormats.mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND'));
 			const result = await listSearch.searchFormats.call(mockCtx, undefined);
 			expect(result.results).toHaveLength(FORMAT_OPTIONS.length);
+		});
+
+		it('propagates auth errors (401) to the user', async () => {
+			const authError = Object.assign(new Error('Unauthorized'), { httpCode: '401' });
+			mockGetAllFormats.mockRejectedValueOnce(authError);
+			await expect(listSearch.searchFormats.call(mockCtx, undefined)).rejects.toThrow(
+				'Unauthorized',
+			);
+		});
+
+		it('propagates server errors (500) to the user', async () => {
+			const serverErr = Object.assign(new Error('Internal'), {
+				cause: { statusCode: 500 },
+			});
+			mockGetAllFormats.mockRejectedValueOnce(serverErr);
+			await expect(listSearch.searchFormats.call(mockCtx, undefined)).rejects.toThrow(
+				'Internal',
+			);
 		});
 	});
 });

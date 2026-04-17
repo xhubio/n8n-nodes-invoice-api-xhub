@@ -9,6 +9,33 @@ function applyFilter(items, filter) {
     const needle = filter.toLowerCase();
     return items.filter((o) => o.name.toLowerCase().includes(needle));
 }
+/**
+ * Decide whether a caught error should be re-thrown (so the n8n UI shows it
+ * to the user) or silently absorbed (so we fall back to local constants).
+ *
+ * Rule: anything with an HTTP status code came from the server and is
+ * meaningful — auth failures, forbidden, rate limits, server errors — all
+ * must surface. Only errors without an HTTP response (network/DNS/timeout
+ * problems) are treated as "API temporarily unreachable" and trigger the
+ * static fallback.
+ */
+function shouldSurfaceError(err) {
+    if (!err || typeof err !== 'object')
+        return false;
+    const e = err;
+    if (e.httpCode !== undefined && e.httpCode !== null)
+        return true;
+    if (typeof e.statusCode === 'number')
+        return true;
+    if (typeof e.response?.statusCode === 'number')
+        return true;
+    if (e.cause && (e.cause.statusCode !== undefined || e.cause.httpCode !== undefined)) {
+        return true;
+    }
+    // Node.js network-error codes surface as string .code (ENOTFOUND, ECONNRESET, etc.)
+    // Those should NOT surface — they trigger fallback.
+    return false;
+}
 exports.listSearch = {
     async searchCountries(filter) {
         try {
@@ -24,8 +51,10 @@ exports.listSearch = {
                 return { results };
             }
         }
-        catch {
-            // fall through to local fallback
+        catch (error) {
+            if (shouldSurfaceError(error))
+                throw error;
+            // Pure network/DNS/timeout — fall through to local constants
         }
         const results = applyFilter(constants_1.COUNTRY_OPTIONS.map((o) => ({ name: o.name, value: o.value })), filter);
         return { results };
@@ -57,8 +86,10 @@ exports.listSearch = {
                 }
             }
         }
-        catch {
-            // fall through to local fallback
+        catch (error) {
+            if (shouldSurfaceError(error))
+                throw error;
+            // Pure network/DNS/timeout — fall through to local constants
         }
         const results = applyFilter(constants_1.FORMAT_OPTIONS.map((o) => ({ name: o.name, value: o.value })), filter);
         return { results };
