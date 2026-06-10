@@ -31,7 +31,7 @@ The release script (`scripts/release.sh`) performs these steps in order:
 - **GitHub CLI** (`gh`): installed and authenticated (`gh auth login`)
 - **pnpm**: installed
 - **Node.js**: >= 22.0
-- **npm token**: configured as `NPM_TOKEN` secret in the GitHub repository settings
+- **npm Trusted Publisher**: configured for the package on npmjs.com (Settings → Trusted Publisher → GitHub Actions: owner `xhubio`, repo `n8n-nodes-invoice-api-xhub`, workflow `publish.yml`). No `NPM_TOKEN` secret is needed — CI authenticates via OIDC.
 
 ## Version Bumping
 
@@ -72,8 +72,8 @@ pnpm release
 │                             │
 │  1. pnpm install            │
 │  2. pnpm build              │
-│  3. pnpm test               │
-│  4. npm publish --provenance│
+│  3. pnpm test:ci            │
+│  4. npm publish (OIDC)      │
 └─────────────────────────────┘
            │
            ▼
@@ -108,7 +108,7 @@ gh auth login
 
 ### npm publish fails in CI
 
-Check the `NPM_TOKEN` secret in **GitHub → Repository Settings → Secrets and variables → Actions**. The token needs `publish` permissions on npmjs.com.
+CI publishes via OIDC **trusted publishing** (no token). Verify a **Trusted Publisher** is configured for the package on npmjs.com (**Settings → Trusted Publisher → GitHub Actions**: owner `xhubio`, repo `n8n-nodes-invoice-api-xhub`, workflow `publish.yml`, allowed action `npm publish`). Also ensure the workflow upgrades npm to ≥ 11.5.1 and keeps `permissions: id-token: write`.
 
 ### Tests fail during release
 
