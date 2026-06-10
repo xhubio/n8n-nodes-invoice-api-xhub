@@ -5,13 +5,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![n8n](https://img.shields.io/badge/n8n-community%20node-ff6d5a)](https://docs.n8n.io/integrations/community-nodes/)
 
-This is the official [invoice-api.xhub](https://invoice-api.xhub.io) community node for [n8n](https://n8n.io/). Generate, parse, and validate e-invoices across 14 European countries and 18+ formats — including XRechnung, ZUGFeRD, Factur-X, FatturaPA, and Peppol — directly from your n8n workflows.
+This is the official [invoice-api.xhub](https://invoice-api.xhub.io) community node for [n8n](https://n8n.io/). Generate, parse, and validate e-invoices across 28 European countries and 18+ formats — including XRechnung, ZUGFeRD, Factur-X, FatturaPA, and Peppol — directly from your n8n workflows.
 
-[Full documentation](https://invoice-api.xhub.io/docs/integrations/n8n) | [API Playground](https://invoice-api.xhub.io/playground) | [OpenAPI Reference](https://service.invoice-api.xhub.io/docs)
+[Full documentation](https://invoice-api.xhub.io/docs/integrations/n8n) | [API Playground](https://invoice-api.xhub.io/playground) | [OpenAPI Reference](https://service.invoice-api.xhub.io/docs) | [YouTube](https://www.youtube.com/@invoice-api-xhub-io)
 
 ## Why invoice-api.xhub?
 
-- **14 countries, 18+ formats** — one unified JSON schema for XRechnung, ZUGFeRD, Factur-X, FatturaPA, UBL, and more
+- **28 countries, 18+ formats** — one unified JSON schema for XRechnung, ZUGFeRD, Factur-X, FatturaPA, UBL, Peppol, and more
 - **Compliance built in** — validation against country-specific rules (EN 16931, B2G/B2B mandates)
 - **No-code automation** — drag-and-drop n8n node with auto-detect parsing, binary file support, and batch processing
 - **Free sandbox** — test with `sk_test_*` keys, no credit card required
@@ -35,7 +35,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 The package name is `n8n-nodes-invoice-api-xhub`.
 
-For a step-by-step walkthrough, see the [n8n Integration Guide](https://invoice-api.xhub.io/docs/integrations/n8n).
+For a step-by-step walkthrough, see the [n8n Integration Guide](https://invoice-api.xhub.io/docs/integrations/n8n) or watch the [video walkthrough](https://www.youtube.com/watch?v=DMtHMHrevYw) on YouTube.
 
 ## Operations
 
@@ -72,18 +72,20 @@ Requires Node.js **≥ 22.0**.
 
 ## Usage
 
-### Supported Countries (14)
+### Supported Countries (28)
 
 | Region | Countries |
 |--------|-----------|
 | DACH | Germany (DE), Austria (AT), Switzerland (CH) |
-| EU West | France (FR), Belgium (BE), Netherlands (NL) |
-| EU South | Italy (IT), Spain (ES), Portugal (PT) |
-| EU East | Poland (PL), Czech Republic (CZ), Hungary (HU), Romania (RO), Bulgaria (BG) |
+| Western Europe | France (FR), Belgium (BE), Netherlands (NL), Luxembourg (LU), Ireland (IE), United Kingdom (GB) |
+| Southern Europe | Italy (IT), Spain (ES), Portugal (PT), Greece (GR), Cyprus (CY), Malta (MT) |
+| Northern Europe | Denmark (DK), Sweden (SE), Finland (FI), Norway (NO) |
+| Baltics | Estonia (EE), Latvia (LV), Lithuania (LT) |
+| Central & Eastern Europe | Poland (PL), Czech Republic (CZ), Hungary (HU), Slovenia (SI), Romania (RO), Bulgaria (BG) |
 
 ### Supported Formats
 
-`pdf` · `zugferd` · `xrechnung` · `ebinterface` · `facturx` · `fatturapa` · `facturae` · `ubl` · `isdoc` · `nav` · `ksef` · `efactura` · `saft`
+`pdf` · `ubl` · `peppol-ubl` · `zugferd` · `xrechnung` · `ebinterface` · `qr-bill` · `facturx` · `fatturapa` · `facturae` · `isdoc` · `nav` · `mydata` · `cii` · `ksef` · `efactura` · `saft`
 
 For format details and country-specific requirements, see the [API documentation](https://invoice-api.xhub.io/docs).
 
@@ -133,6 +135,8 @@ For more help, see the [full troubleshooting guide](https://invoice-api.xhub.io/
 - [API Playground](https://invoice-api.xhub.io/playground) — test API calls in your browser
 - [OpenAPI Documentation](https://service.invoice-api.xhub.io/docs) — full endpoint reference
 - [API Reference (this repo)](docs/API-REFERENCE.md)
+- [YouTube Channel](https://www.youtube.com/@invoice-api-xhub-io) — video tutorials and product updates
+- [Video Tutorial](https://www.youtube.com/watch?v=DMtHMHrevYw) — automate e-invoicing with n8n (XRechnung & ZUGFeRD)
 - [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/) — how to install community nodes
 - [GitHub Repository](https://github.com/xhubio/n8n-nodes-invoice-api-xhub)
 - **Support:** support@xhub.io

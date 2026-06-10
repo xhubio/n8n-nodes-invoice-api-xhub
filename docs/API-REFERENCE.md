@@ -824,6 +824,14 @@ curl -X POST https://service.invoice-api.xhub.io/api/v1/invoice/DE/xrechnung/gen
 
 ## Changelog
 
+### v1.3.0 (2026-05-24)
+- Expanded coverage to **28 European countries** (added CY, DK, EE, FI, GB, GR, IE, LT, LU, LV, MT, NO, SE, SI)
+- New formats: `mydata` (GR), `qr-bill` (CH), `peppol-ubl` (PL/PT/RO), `cii` (parse)
+- Generate response now includes `embeddedXml` for hybrid formats (ZUGFeRD/Factur-X)
+- Validate response now includes per-format `results` (XSD + Schematron validation)
+- New invoice fields: `profile`, `serviceCategory`, `roundingAmount`, `referencedInvoiceNumber`/`referencedInvoiceDate`, `delivery`, `deliveryNote`, `directDebitMandate`, `constructionTax`, `allowancesCharges`, `thirdPartyPayments`, `attachments`, `projectNumber`
+- New API endpoints: `POST /api/v1/pdf/generate`, `POST /api/v1/invoice/{country}/{format}/validate`, `GET /api/v1/invoice/es/verifactu-qr`
+
 ### v1.1.0 (2026-04)
 - Extended party schema: `tradingName`, `additionalStreet`, `state`, `website`, `bankAccount.accountHolder`
 - `position` now required on items, `taxCategoryCode` now optional

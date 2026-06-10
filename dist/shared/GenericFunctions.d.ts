@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IHookFunctions, ILoadOptionsFunctions, IDataObject, IHttpRequestMethods } from 'n8n-workflow';
 /**
- * Bank account details (v1.1.0)
+ * Bank account details (v1.3)
  */
 export interface BankAccount {
     iban: string;
@@ -9,7 +9,7 @@ export interface BankAccount {
     accountHolder?: string;
 }
 /**
- * Invoice party (seller/buyer) — flat address fields per OpenAPI v1.1.0
+ * Invoice party (seller/buyer) — flat address fields per OpenAPI v1.3
  */
 export interface InvoiceParty {
     name: string;
@@ -94,7 +94,7 @@ export interface CountrySpecificDE {
 export type CountrySpecific = CountrySpecificDE | IDataObject;
 export type InvoiceType = 'invoice' | 'credit_note' | 'proforma' | 'correction';
 /**
- * Invoice data matching OpenAPI v1.1.0 spec
+ * Invoice data matching OpenAPI v1.3 spec
  */
 export interface InvoiceData {
     type: InvoiceType;
@@ -115,8 +115,21 @@ export interface InvoiceData {
     orderNumber?: string;
     customerNumber?: string;
     contractNumber?: string;
+    projectNumber?: string;
     countrySpecific?: CountrySpecific;
     notes?: string;
+    profile?: string;
+    serviceCategory?: string;
+    roundingAmount?: number;
+    referencedInvoiceNumber?: string;
+    referencedInvoiceDate?: string;
+    delivery?: IDataObject;
+    deliveryNote?: IDataObject;
+    directDebitMandate?: IDataObject;
+    constructionTax?: IDataObject;
+    allowancesCharges?: IDataObject[];
+    thirdPartyPayments?: IDataObject[];
+    attachments?: IDataObject[];
 }
 /**
  * Format options for invoice generation
@@ -157,12 +170,14 @@ export interface InvoiceXhubApiResponse {
     mimeType?: string;
     hash?: string;
     data?: string;
+    embeddedXml?: string;
     invoice?: IDataObject;
     countries?: IDataObject[];
     formats?: string[];
     code?: string;
     name?: string;
     detection?: DetectionResult;
+    results?: IDataObject[];
     quota?: QuotaInfo;
     errors?: Array<{
         code: string;

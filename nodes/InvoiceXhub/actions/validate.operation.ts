@@ -140,6 +140,11 @@ export async function execute(
 				warningCount: response.warnings?.length || 0,
 			};
 
+			// Include per-format validation results (XSD + Schematron) when present
+			if (response.results?.length) {
+				outputData.results = response.results;
+			}
+
 			// Check if we should fail on errors
 			if (options.failOnErrors && response.errors && response.errors.length > 0) {
 				const errorMessages = response.errors.map((e) => e.message).join('; ');

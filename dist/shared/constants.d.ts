@@ -1,28 +1,35 @@
 import type { INodePropertyOptions } from 'n8n-workflow';
 /**
- * Supported country codes for invoice-api.xhub API.
+ * Supported country codes for invoice-api.xhub API (OpenAPI v1.3, 28 countries).
  *
  * Displayed in UI in uppercase (ISO 3166-1 alpha-2). The API expects
  * lowercase in URL paths — that lowercasing happens at the HTTP boundary
- * (see GenericFunctions.ts).
+ * (see GenericFunctions.ts). Ordered by ISO code to match the `/formats` response.
+ *
+ * This is a local fallback superset — the authoritative list comes from the
+ * `/formats` endpoint at runtime (see methods/loadOptions.ts).
  */
-export declare const SUPPORTED_COUNTRIES: readonly ["DE", "AT", "CH", "BE", "NL", "FR", "IT", "ES", "PT", "PL", "CZ", "HU", "RO", "BG"];
+export declare const SUPPORTED_COUNTRIES: readonly ["AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI"];
 export type CountryCode = (typeof SUPPORTED_COUNTRIES)[number];
 /**
- * Country options for n8n dropdowns
+ * Country options for n8n dropdowns (ordered by ISO code)
  */
 export declare const COUNTRY_OPTIONS: INodePropertyOptions[];
 /**
- * E-Invoice format identifiers matching the OpenAPI v1.1 `format` path enum.
+ * E-Invoice format identifiers matching the OpenAPI v1.3 `format` path enum.
+ *
+ * Superset of generate + parse formats. Generate formats (per country) come from
+ * the `/formats` endpoint; `cii`, `ksef`, `efactura` and `saft` are parse-only.
  */
-export declare const E_INVOICE_FORMATS: readonly ["pdf", "zugferd", "xrechnung", "ebinterface", "facturx", "fatturapa", "facturae", "ubl", "isdoc", "nav", "ksef", "efactura", "saft"];
+export declare const E_INVOICE_FORMATS: readonly ["pdf", "ubl", "zugferd", "xrechnung", "facturx", "fatturapa", "facturae", "ebinterface", "isdoc", "nav", "mydata", "qr-bill", "peppol-ubl", "cii", "ksef", "efactura", "saft"];
 export type EInvoiceFormat = (typeof E_INVOICE_FORMATS)[number];
 /**
- * Format options for n8n dropdowns (grouped by region)
+ * Format options for n8n dropdowns (grouped by region/purpose)
  */
 export declare const FORMAT_OPTIONS: INodePropertyOptions[];
 /**
- * Country-specific format mappings (local superset — authoritative list comes from the /formats endpoint)
+ * Country-specific format mappings (local superset — authoritative list comes
+ * from the `/formats` endpoint). Mirrors the generate formats reported by the API.
  */
 export declare const COUNTRY_FORMATS: Record<CountryCode, EInvoiceFormat[]>;
 /**

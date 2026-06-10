@@ -29,6 +29,8 @@ This tutorial series takes you from basic setup to building production-ready mul
 | [Setup Credentials](./01-getting-started/setup-credentials.md) | Get API key, configure n8n credentials, test connection | How to authenticate with invoice-api.xhub API |
 | [Your First Invoice](./01-getting-started/first-invoice.md) | Generate a simple PDF invoice step-by-step | Basic invoice generation workflow |
 
+📺 Prefer video? Watch [Automate E-Invoicing with n8n (XRechnung & ZUGFeRD)](https://www.youtube.com/watch?v=DMtHMHrevYw) on our [YouTube channel](https://www.youtube.com/@invoice-api-xhub-io).
+
 **Prerequisites:** n8n installed ([Installation Guide](https://docs.n8n.io/hosting/installation/))
 
 ---
@@ -48,14 +50,16 @@ This tutorial series takes you from basic setup to building production-ready mul
 
 ## Quick Reference
 
-### Supported Countries
+### Supported Countries (28)
 
 | Region | Countries |
 |--------|-----------|
 | DACH | Germany (DE), Austria (AT), Switzerland (CH) |
-| EU West | France (FR), Belgium (BE), Netherlands (NL) |
-| EU South | Italy (IT), Spain (ES), Portugal (PT) |
-| EU East | Poland (PL), Czech Republic (CZ), Hungary (HU), Romania (RO), Bulgaria (BG) |
+| Western Europe | France (FR), Belgium (BE), Netherlands (NL), Luxembourg (LU), Ireland (IE), United Kingdom (GB) |
+| Southern Europe | Italy (IT), Spain (ES), Portugal (PT), Greece (GR), Cyprus (CY), Malta (MT) |
+| Northern Europe | Denmark (DK), Sweden (SE), Finland (FI), Norway (NO) |
+| Baltics | Estonia (EE), Latvia (LV), Lithuania (LT) |
+| Central & Eastern Europe | Poland (PL), Czech Republic (CZ), Hungary (HU), Slovenia (SI), Romania (RO), Bulgaria (BG) |
 
 ### Popular Formats
 
@@ -91,6 +95,7 @@ Having trouble following along? Download and import these ready-made workflows:
 - [Multi-Agent Architecture](../MULTI-AGENT-ARCHITECTURE.md) - System architecture details
 - [n8n Documentation](https://docs.n8n.io) - n8n platform documentation
 - [invoice-api.xhub Portal](https://portal.invoice-api.xhub.io) - Get your API key
+- [YouTube Channel](https://www.youtube.com/@invoice-api-xhub-io) - Video tutorials and walkthroughs
 
 ---
 

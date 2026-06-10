@@ -84,8 +84,8 @@ describe('Get Formats', () => {
 
 		expect(result).toHaveLength(1);
 		expect(Array.isArray(result[0].json.countries)).toBe(true);
-		expect((result[0].json.countries as unknown[]).length).toBeGreaterThanOrEqual(14);
-		expect(result[0].json.totalCountries).toBeGreaterThanOrEqual(14);
+		expect((result[0].json.countries as unknown[]).length).toBeGreaterThanOrEqual(28);
+		expect(result[0].json.totalCountries).toBeGreaterThanOrEqual(28);
 	});
 
 	it('should return formats for Germany (DE)', async () => {

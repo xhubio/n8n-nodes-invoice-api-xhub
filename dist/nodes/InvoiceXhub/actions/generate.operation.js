@@ -207,6 +207,10 @@ async function execute(items) {
             if (options.includeWarnings !== false && response.warnings?.length) {
                 outputData.warnings = response.warnings;
             }
+            // Expose embedded XML for hybrid formats (ZUGFeRD/Factur-X) when present
+            if (response.embeddedXml) {
+                outputData.embeddedXml = response.embeddedXml;
+            }
             // Handle binary output
             const newItem = {
                 json: outputData,

@@ -65,7 +65,7 @@ describe('API: Formats', () => {
 		const { status, data } = await api('GET', `${API_PREFIX}/formats`);
 		expect(status).toBe(200);
 		expect(Array.isArray(data.countries)).toBe(true);
-		expect((data.countries as unknown[]).length).toBeGreaterThanOrEqual(14);
+		expect((data.countries as unknown[]).length).toBeGreaterThanOrEqual(28);
 	});
 
 	it('GET /DE/formats → 200', async () => {

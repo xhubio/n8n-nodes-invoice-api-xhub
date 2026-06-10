@@ -1,5 +1,7 @@
 # Setup Credentials
 
+> 📺 New here? Watch [Automate E-Invoicing with n8n (XRechnung & ZUGFeRD)](https://www.youtube.com/watch?v=DMtHMHrevYw) for a full overview, then follow the steps below. More videos on the [invoice-api.xhub YouTube channel](https://www.youtube.com/@invoice-api-xhub-io).
+
 ## Overview
 
 In this tutorial, you'll set up your invoice-api.xhub API credentials in n8n and verify the connection works correctly.

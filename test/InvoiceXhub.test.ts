@@ -3,8 +3,8 @@ import * as actions from '../nodes/InvoiceXhub/actions';
 
 describe('InvoiceXhub Constants', () => {
 	describe('SUPPORTED_COUNTRIES', () => {
-		it('should have 14 supported countries', () => {
-			expect(SUPPORTED_COUNTRIES).toHaveLength(14);
+		it('should have 28 supported countries', () => {
+			expect(SUPPORTED_COUNTRIES).toHaveLength(28);
 		});
 
 		it('should include DACH countries', () => {
@@ -32,10 +32,18 @@ describe('InvoiceXhub Constants', () => {
 			expect(SUPPORTED_COUNTRIES).toContain('RO');
 			expect(SUPPORTED_COUNTRIES).toContain('BG');
 		});
+
+		it('should include the v1.3 country additions', () => {
+			expect(SUPPORTED_COUNTRIES).toContain('CY');
+			expect(SUPPORTED_COUNTRIES).toContain('GR');
+			expect(SUPPORTED_COUNTRIES).toContain('GB');
+			expect(SUPPORTED_COUNTRIES).toContain('SE');
+			expect(SUPPORTED_COUNTRIES).toContain('NO');
+		});
 	});
 
 	describe('E_INVOICE_FORMATS', () => {
-		it('matches OpenAPI v1.1 format enum', () => {
+		it('matches OpenAPI v1.3 format enum', () => {
 			expect(E_INVOICE_FORMATS).toEqual(
 				expect.arrayContaining([
 					'pdf',
@@ -51,6 +59,10 @@ describe('InvoiceXhub Constants', () => {
 					'ksef',
 					'efactura',
 					'saft',
+					'mydata',
+					'qr-bill',
+					'peppol-ubl',
+					'cii',
 				]),
 			);
 		});

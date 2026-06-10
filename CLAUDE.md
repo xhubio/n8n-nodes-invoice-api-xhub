@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-n8n community node package (`n8n-nodes-invoice-api-xhub`) for the invoice-api.xhub E-Invoice API (v1.3). Provides generate, parse, parse-auto-detect, validate, and get-formats operations for e-invoices across 14 European countries with 18+ formats.
+n8n community node package (`n8n-nodes-invoice-api-xhub`) for the invoice-api.xhub E-Invoice API (v1.3). Provides generate, parse, parse-auto-detect, validate, and get-formats operations for e-invoices across 28 European countries with 18+ formats.
 
 ## Commands
 

@@ -45,7 +45,7 @@ class InvoiceXhub {
         group: ['transform'],
         version: 1,
         subtitle: '={{$parameter["operation"]}}',
-        description: 'Generate, parse, and validate e-invoices across 14 European countries with 18+ formats',
+        description: 'Generate, parse, and validate e-invoices across 28 European countries with 18+ formats',
         defaults: {
             name: 'invoice-api.xhub',
         },
